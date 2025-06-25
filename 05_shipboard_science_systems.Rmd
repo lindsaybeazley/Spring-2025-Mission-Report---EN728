@@ -1,0 +1,65 @@
+## Shipboard Science Systems {#shipboard_systems}
+
+### Vessel-Mounted Acoustic Doppler Current Profiler (VMADCP)
+
+Ocean currents were continuously measured throughout the EN728 mission using a dual vessel-mounted Acoustic Doppler Current Profiler (ADCP) system consisting of a 300 kHz RDI Workhorse Mariner and 75 kHz Ocean Surveyor ADCP systems. The transducers for these systems were mounted at ~5 meters depth on the hull of the vessel. Data were processed on board in real time using the University of Hawaii's Data Acquisition System (UHDAS). 
+
+The 75 kHz ADCP reached ~500-900 m depth in good weather in its deep-profiling mode, while the 300 kHz system reached to ~90 m below the hull of the vessel. In bad weather, low scattering conditions, or some speed/heading/sea state conditions that entrain bubbles under the transducer, the range is less. 
+
+Data acquisition for the sonar and the requisite ancillary navigation streams occurs via the UHDAS software. An Ocean Surveyor is capable of running in either broadband mode (higher resolution at the expense of penetration) or narrowband mode (slightly deeper profiling but lower resolution). It is also capable of interweaving these pings. However, broadband mode was turned off during the EN728 mission and only narrowband mode was used. The ADCP system configuration in Table \@ref(tab:table8) remained consistent for the duration of the EN728 mission. Both ADCP systems were run continuously and simultaneously, except for when within the confines of the Gully MPA and when transiting across the boundaries of the Saint-Pierre et Miquelon Exclusive Economic Zone. Bottom tracking was turned on after departure for about half a day then remained off the remainder of the mission. A detailed digital log for the ADCPs was maintained by the URI marine technicians, which was sent together with the data to BIO Data Services Group for upload and archival in their protected server. 
+
+\hspace*{-0.5in}
+
+```{r table8, results="asis", include=TRUE, echo=FALSE}
+
+#Create the table attributes
+ADCP <- c("75 kHz", "150 kHz")
+start_day <- c("2025-03-29 12:53:00", "2025-03-29 12:53:00")
+end_day <- c("2025-04-18 11:56:00", "2025-04-18 11:56:00")
+ping <- c("Narrow band", "Water profile")
+no_bins <- c(100, 35)
+bin_size <- c(8, 4)
+blank_distance <- c(8, 4)
+
+ADCP_table <- tibble(ADCP, start_day, end_day, ping, no_bins, bin_size, blank_distance)
+
+colnames(ADCP_table) <- c("ADCP", "Start Day", "End Day", "Ping", "No. Bins", "Bin Size (m)", "Blank Distance (m)")
+
+kable(ADCP_table, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = FALSE,
+    format = "latex",
+    digits=4,
+    escape = FALSE,
+    align = "l",
+    caption = "Configuration settings for the 75 and 150 kHz VMADCP units on the RV \\textit{Endeavor} for the 2025 spring AZMP mission (EN728).") %>% 
+    kableExtra::row_spec(0, bold = TRUE, font_size = 12) %>%
+    kableExtra::column_spec(2, width = "6em") %>%
+    kableExtra::column_spec(3, width = "6em") %>%
+    kableExtra::column_spec(4, width = "3em") %>%
+    kableExtra::column_spec(5, width = "4em") %>%
+    kableExtra::column_spec(6, width = "4em") %>%
+    kableExtra::column_spec(7, width = "6em") %>%
+    kable_styling(latex_options = "hold_position")
+```
+\clearpage
+
+
+
+### Shipboard Flow-Through System and Meteorological Measurements
+
+The RV _Endeavor_ has uncontaminated science seawater that flowed into the vessel at ~ 5 metres depth into a seachest located in the engine room. This seawater was pumped via a non-metallic impeller pump past a SBE3S remote temperature sensor, through PVC piping and to outlets located in the Special Purpose and Wet Laboratories, and to the 01 deck. In the Wet Lab, the seawater flowed through a debubbler and was then split to a SBE21 TSG, SBE45 TSal, WET Labs WETStar chlorophyll fluorometer, ECO-Fluor fluorometer and the sink. The flowing water then drains overboard. This system also includes a surface PAR installed on the 01 deck of the vessel. Logging of these data was done using SBE Seasave software, and the resulting serial string were routed to NOAA's Scientific Computer System (SCS). From there, the Cruise Observations Real-time Interface and Open Live Information eXchange (CORIOLIX) system, accessed through shipboard LAN, was used to generate various data plots to visualize and inspect the collected data. 
+
+
+### Echosounders
+
+The RV _Endeavor_ is equipped with 12 kHz single-beam echosounder that was used for depth estimation during CTD and ring net operations. The echosounder ASCII string depth values and other data were routed to SCS. The vessel was also equipped with a low frequency 3.5 kHz echosounder (CHIRP), which was not used during the mission.
+
+
+### Availability of Shipboard Data
+
+All shipboard environmental data collected during the EN728 mission were archived at BIO in the ODIS data server and are available by request to DFO.BIODataServices-BIOServicesdeDonnees.MPO@dfo-mpo.gc.ca, and will also be submitted by the RV _Endeavor_ Marine Technical Services group to NSF-sponsored Rolling Deck to Repository [R2R](https://www.rvdata.us/). R2R catalogs and submits the underway environmental sensor data to long-term public archives, including the NOAA National Centers for Environmental Information (NCEI).  
+
+
+\clearpage

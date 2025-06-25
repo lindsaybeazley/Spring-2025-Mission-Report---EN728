@@ -1,0 +1,175 @@
+---
+title: |
+  Mission Report for the Maritimes Region Atlantic Zone Monitoring Program 2025 Spring Survey (EN728)
+french_title: 
+year: 2025
+report_number: xxxx
+author: |
+  Lindsay Beazley^1^,
+  Diana Cardoso^1^,
+  Christopher Gordon^1^, and
+  Carina Gjerdrum^2^
+author_list: "Beazley, L., Cardoso, D., Gordon, C., and Gjerdrum, C."
+region: Maritimes Region
+french_region: Région des Maritimes
+isbn: ""
+report_DOI: "##.####/xxxxx" # do not include https://doi.org/
+address: |
+     ^1^Ocean and Ecosystem Sciences Division\
+     Fisheries and Oceans Canada\
+     Bedford Institute of Oceanography\
+     P.O. Box 1006\
+     Dartmouth, Nova Scotia\
+     Canada, B2Y 4A2\
+     ^2^Canadian Wildlife Service\
+     Environment and Climate Change Canada\
+     45 Alderney Drive\
+     Dartmouth, Nova Scotia\
+     Canada, B2Y 2N6\
+french_address: |
+  ^1^Station biologique du Pacifique\
+     Pêches et Océans Canada, 3190 Hammond Bay Road\
+     Nanaimo, Colombie-Britannique, V9T 6N7, Canada\
+  \smallskip
+  ^2^Loin, très loin\
+     Une autre galaxie
+phone: "(902) 225-3743"
+author_footnote: "Email: Lindsay.Beazley@dfo-mpo.gc.ca | telephone: (902) 225-3743"
+abstract: |
+  Fisheries and Oceans Canada's (DFO) Maritimes Region Atlantic Zone Monitoring Program 2025 spring survey was conducted on the Research Vessel *Endeavor* from March 29 to April 18, 2025. A total of 13 scientific staff participated in the mission and led the deployment of various oceanographic equipment across a network of fixed monitoring stations, including CTD-Rosette deployments for the collection of vertical profiles of e.g., temperature and salinity, and water samples from pre-determined depths, vertical ring net tows for zooplankton sample collection, and Argo float deployments in support of the International Argo program. Additionally, a single passive acoustic monitoring mooring was deployed in Roseway Basin, Scotian Shelf, and a series of acoustic receiver moorings were recovered in the Gully Marine Protected Area (MPA) in support of a DFO-Ocean Tracking Network collaboration to study the movement of tagged species in and around the MPA. In collaboration with the Woods Hole Oceanographic Institution, an Imaging Flow Cytobot was used to collect high-resolution images of phytoplankton from surface waters sampled while underway. This report provides an overview of the mission's objectives, achievements, impacts, gear operations and operational issues. A summary of the seabird and marine mammal observations collected during the mission is presented, as is the vertical structure in temperature, salinity, and dissolved oxygen for each station occupied.
+french_abstract: |
+  To be translated
+# `show_continued_text` is a logical which, if `true`, places
+# "Continued on the next page..." and "...Continued from the previous page" or
+# the french equivalents (if `french` = `true`) on all long tables created
+# with `csas_table()` that cross page boundaries. If `false`, these will
+# both be absent from all tables. If it is missing or any other value than
+# `false`, it will be assumed to be `true`
+citation_french: ""
+show_continued_text: true
+output:
+ csasdown::techreport_pdf:
+   french: false
+   # copy_sty is a toggle to copy the style file from the csasdown package every time you compile
+   # the document. If false, any changes you have made to the style file in your project
+   # will remain between compilations. If true, your changes will be lost when you compile
+   copy_sty: false
+   # line_nums is a toggle to show line numbers on the left side of the page. 
+   line_nums: false
+   # line_nums_mod represents showing every Nth line if line_nums is true
+   line_nums_mod: 1
+   # lot_lof is a toggle to show/not show the lists of tables and figures at the
+   # beginning of the document
+   lot_lof: false
+   # draft_watermark is a toggle to show/not show a DRAFT watermark across every page
+   draft_watermark: false
+   # highlight is the theme to use for code output. Must be one of the list given by:
+   # pandoc --list-highlight-styles
+   # which are:
+   # pygments, tango, espresso, zenburn, kate, monochrome, breezedark, haddock
+   # or the name of a custom *.latex file which is most easily made by copying one from 
+   # the csasdown library 'themes' directory, this directory on your machine:
+   # file.path(.libPaths(), "csasdown", "themes")
+   # to your working directory (the one containing index.Rmd)
+   # To change the foreground text color, change the RGB value in the line containing
+   # 'DefineVerbatimEnvironment'
+   # To change background color, change the RGB values in the line containing 'shadecolor'
+   highlight: tango
+type:
+  techreport
+# ------------
+# End of options to set
+knit: (function(input, ...) csasdown::render())
+site: bookdown::bookdown_site
+link-citations: true
+bibliography: bib/refs.bib
+# Any extra LaTeX code for the header:
+header-includes:
+ - \usepackage{float}
+ - \usepackage{underscore}  #handles underscores in station names in event table
+ - \usepackage{pdfpages} 
+ - \usepackage{pdflscape} #assists with setting landscape pages
+ - \usepackage{booktabs} 
+ - \usepackage{helvet}  #to set main font to arial/helvetica
+ - \renewcommand{\familydefault}{\sfdefault} #to set main font to arial/helvetica
+ - \usepackage{colortbl} #allows you to add colour to tables
+ - \usepackage{xcolor} #allows you to add colour to tables
+ - \definecolor{ltgray}{HTML}{DEDEDE} #set colour of stripes in tables
+ - \usepackage{caption}
+ - \usepackage{array}
+ - \captionsetup{justification=justified, singlelinecheck=off, font=small} #set justification for table/figure captions. font=small sets caption font to 11 pts. See https://en.wikibooks.org/wiki/LaTeX/Fonts#Built-in_sizes
+ - \usepackage[labelfont=bf]{caption} #changes sequential caption name/number to bold text
+ - \usepackage{tabu}
+# - \hypersetup{colorlinks,  
+#            plainpages=true,
+#            linkcolor=black,
+#            citecolor=black,
+#            urlcolor=blue} #sets colour of hyperlinks to blue
+ - \usepackage[utf8]{inputenc}
+ - \DeclareUnicodeCharacter{2212}{-}
+---
+
+```{r setup, echo=FALSE, cache=FALSE, message=FALSE, results='hide', warning=FALSE}
+library(knitr)
+if (is_latex_output()) {
+  knitr_figs_dir <- "knitr-figs-pdf/"
+  knitr_cache_dir <- "knitr-cache-pdf/"
+  fig_out_type <- "png"
+} else {
+  knitr_figs_dir <- "knitr-figs-docx/"
+  knitr_cache_dir <- "knitr-cache-docx/"
+  fig_out_type <- "png"
+}
+#fig_asp <- 0.618
+#fig_width <- 9
+#fig_out_width <- "6in"
+fig_dpi <- 300
+fig_align <- "center"
+fig_pos <- "htb"
+opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.path = knitr_figs_dir,
+  cache.path = knitr_cache_dir,
+  #fig.asp = fig_asp,
+  #fig.width = fig_width,
+  #out.width = fig_out_width,
+  echo = FALSE,
+  #  autodep = TRUE,
+  #  cache = TRUE,
+  cache.comments = FALSE,
+  dev = fig_out_type,
+  dpi = fig_dpi,
+  fig.align = fig_align,
+  fig.pos = fig_pos
+)
+```
+
+```{r load-libraries, cache=FALSE}
+# add other packages here:
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(tibble)
+library(rosettafish)
+library(csasdown)
+library(kableExtra)
+library(ggspatial)
+library(openxlsx)
+library(readxl)
+library(tidyr)
+library(stringr)
+library(measurements)
+library(oce)
+library(gsw)
+library(scales)
+library(sf)
+library(rnaturalearth)
+library(viridis)
+library(cowplot)
+library(ggpubr)
+library(ggpattern)
+library(lubridate)
+```

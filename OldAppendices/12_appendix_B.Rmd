@@ -1,0 +1,484 @@
+# Calibration of Dissolved Oxygen Sensor Data {#appB}
+
+\pagestyle{plain} <!-- reinstate page style --> 
+
+## Background
+
+A preliminary exercise was undertaken to calculate new dissolved oxygen calibration coefficients based on the relationship between the CTD oxygen sensor data and dissolved oxygen measurements from bottle samples using the Winkler titration method. The purpose of this exercise was to highlight potentially erroneous data, and to calculate preliminary calibration coefficients that could then be used to guide the final post-calibration process conducted by the BIO Data Services group. The calibration coefficients determined during final post-processing will be applied to the Ocean Data Format (ODF) files prior to their archival. 
+
+The process for calibrating SBE 43 dissolved oxygen sensor data is outlined in the 'SBE 43 Dissolved Oxygen Sensor Calibration and Data Corrections' [Application Note No. 64-2](https://www.seabird.com/oxygen-sensors/sbe-43-dissolved-oxygen-sensor/family-downloads?productCategoryId=54627869932) (SBE, 2024a) and is summarized here. Given that the loss of sensitivity resulting from sensor membrane fouling is typically observed as a linear change in sensor output compared to a set of reference samples (i.e., Winkler samples), the main term of interest for correcting sensor drift due to fouling is the _Soc_ term in the SBE 43 sensor calibration equation (#1):  
+
+
+$$ Oxygen~(\frac{ml}{l}) = Soc * (V + Voffset) * \varphi~~~ (1)$$ 
+
+
+
+where, 
+
+- _Soc_ is the linear slope scaling coefficient,
+- _V_ is the SBE 43 output voltage signal, measured in volts,
+- _Voffset_ is a fixed sensor voltage at zero oxygen, measured in volts,
+-  $\varphi$ includes fixed terms that correct for the effects of temperature and pressure, and also includes oxygen solubility dependence on temperature and salinity. As these terms remain constant with fouling and sensor age, $\varphi$ can be ignored here.
+
+
+The AZMP performs both pre- and post-mission calibration of the dissolved oxygen sensor data collected on all its missions. For pre-mission calibration, the _Soc_ value and other calibration coefficients provided by SeaBird Scientific upon factory calibration of the dissolved oxygen sensors (see Table \@ref(tab:table4) for calibration date) were entered into SeaBird's SeaSave acquisition software prior to data collection. Post-mission calibration was performed by calculating a new _Soc_ value (referred to as _NewSoc_ in Equation #2), which is determined by calculating the average ratio between Winkler replicate values and the corresponding SBE 43 sensor O$_2$ across the entire mission dataset (or dataset associated with each new sensor), and multiplying this ratio by the previous _Soc_ value found in the configuration (.con or .xmlcon) file and SBE sensor calibration sheet:
+
+
+$$ NewSoc = PreviousSoc * (\frac{Reference}{SBE~43~sensor~O_2})~~~(2)  $$   
+To correct previously collected and converted data (in ml/l), the ratio between the _NewSoc_ and _PreviousSoc_, otherwise known as the slope correction ratio (Equation #3), is multiplied by the SBE 43 dissolved oxygen sensor data collected across the entire mission:
+
+
+$$ Corrected~O_2 = SBE~43~sensor~O_2 * (\frac{NewSoc}{PreviousSoc})~~~(3)  $$   
+Real-time corrections of the dissolved oxygen sensor data could be conducted by replacing the _PreviousSoc_ with the _NewSoc_ in the configuration file. However, this is not conducted as part of the AZMP's standard protocols. Prior to the calculation of the _NewSoc_ value, outliers in the dataset are evaluated and removed. These steps are outlined in detail below.
+
+
+## EN728 dissolved oxygen data evaluation
+
+Real-time validation of the primary oxygen sensor (SBE 43 SN 1648) was conducted during the mission in two ways: 1) by visually inspecting the profile data relative to a calibrated secondary oxygen sensor (SBE 43 SN 4281) mounted on the CTD, and 2) by visually inspecting the relationship between the sensor outputs against oxygen samples measured via Winkler titration (see Appendix [A](#appA)). Periodically throughout the mission, the relationship between the sensor outputs and average Winkler values was evaluated, and a linear model was fitted to the data using R's ggplot2 package (see Figure \@ref(fig:figureB1)). While the linear trends for both sensors appeared to be relatively consistent in their direction/slope, the presence of significant outliers between the sensor outputs and bottle data prevented full evaluation of these trends. These outliers were removed using the 1.5*IQR method (described in detail below), and the data were re-modelled (Figure \@ref(fig:figureB2)). If the relationship between the sensor data and bottle measurements was consistent across a mission and no drift was occurring, the slope of the lines of best fit in Figure \@ref(fig:figureB2) would be zero. However, the fit between both the primary and secondary sensor data and bottle measurements showed a negative slope. While the y-intercept was positive at the beginning of the mission, suggesting that the sensor measurements were, on average, higher than that of the Winkler data, for the secondary sensor the line of best fit decreased to below zero, suggesting that the differences between the sensor and bottle measurements converged towards zero and changed direction towards the end of the mission, when the sensor was reading lower dissolved oxygen concentrations than the Winkler measurements. 
+
+The results of this exercise was reviewed with the URI marine technicians, and a decision was made to flush the primary and secondary oxygen sensors after station PL_03 (Event 046) to eliminate any build-up of organic material (i.e., biofouling). Shortly afterwards, the relationships between the sensor data and bottle measurements were reviewed again and the data compared before and after flushing was conducted, and no improvement to the data was noted as a result of the flushing. Although decreasing, the relationship between the sensor data and bottle measurements was linear (i.e., predictable), both sensors were kept on the CTD package, and the rate of drift continued to be monitored throughout the mission. In the following exercise, new calibration coefficients were computed for both the primary and secondary dissolved oxygen sensors across the full range of events (001 through 220). 
+
+
+
+(ref:figB1-caption) Difference between the dissolved oxygen sensor and corresponding bottle measurements for both the primary (yellow) and secondary (purple) sensor data collected across Events 001 and 220. Equations of the linear models between the primary (yellow) and secondary (blue) sensor values and their associated Winkler values are also shown.
+
+```{r figureB1, results="asis", include=TRUE, fig.pos = "H", out.width="90%", echo=FALSE, fig.align = "center", fig.cap = "(ref:figB1-caption)"}
+
+#Load Oxygen Report:
+oxy_report <- read.csv(file.path("R:\\SRC\\2020s\\2025\\EN728\\Dart_reports\\EN728_Oxygen_Rpt.csv"))
+
+oxy_report$ID <- row.names(oxy_report)
+
+#Create a field that captures the average winkler difference when present, and single replicate values:
+oxy_report$avg_wink <- rowMeans(oxy_report[c('Oxy_W_Rep1', 'Oxy_W_Rep2')], na.rm=TRUE) #setting na.rm=TRUE will include single replicate in field.
+
+#Create a field that subtracts the average winkler from the sensor values
+oxy_report$Pwinkdiff <- (oxy_report$Oxy_CTD_P - oxy_report$avg_wink)
+oxy_report$Swinkdiff <- (oxy_report$Oxy_CTD_S - oxy_report$avg_wink)
+
+
+library(ggpmisc) #for stat_poly_eq
+
+#Then plot with linear model fit:
+ggplot(oxy_report) +
+  geom_point(aes(x=EVENT, y=Pwinkdiff, color = "goldenrod1"), size=3, alpha=0.8) +
+  stat_smooth(aes(x=EVENT, y=Pwinkdiff, color="goldenrod1"), method = lm, se = TRUE, alpha=0.3, formula = y~x) +
+  geom_point(aes(x=EVENT, y=Swinkdiff, color = "slateblue3"), size=3, alpha=0.8) +
+  stat_smooth(aes(x=EVENT, y=Swinkdiff, color="slateblue3"), method = lm, se = TRUE, alpha=0.3, formula = y~x) +
+  scale_color_identity(guide = "legend", name=NULL, labels = c("Primary - Mean Winkler", "Secondary - Mean Winkler")) +
+  guides(colour = guide_legend(label.theme = element_text(size=15))) +
+  theme_bw()+
+  ylab("Sensor - Mean Winkler")+
+  xlab("Event") +
+  theme(legend.position = "top") +
+  theme(axis.text.y=element_text(size=15)) +
+  theme(axis.text.x=element_text(size=15)) +
+  theme(axis.title.y=element_text(size=16)) +
+  theme(axis.title.x=element_text(size=16))  +
+  theme(plot.margin = margin(0.4, 0.4, 0.4, 0.4, "cm"))+
+  stat_poly_eq(parse=T, aes(x=EVENT, y=Pwinkdiff, label = ..eq.label..), color="goldenrod", size=5, formula=y~x) + 
+  stat_poly_eq(parse=T, aes(x=EVENT, y=Swinkdiff, label = ..eq.label..), color= "slateblue3", size=5, formula=y~x, vjust = 2.5)
+  
+
+```
+\clearpage
+
+
+```{r, eval=TRUE, include=FALSE} 
+
+# Step 1: Find outliers between primary and secondary sensors ------------------
+
+oxy_report2 <- oxy_report %>% 
+  arrange(EVENT, SAMPLE_ID) %>% #properly orders oxygen report by event and sample ID
+  mutate(ID=row.names(oxy_report)) #Adds a new variable called ID that can be used to plot the data and/or keep it sorted properly
+oxy_report2$ID <- as.numeric(oxy_report2$ID)
+
+oxy_report2$P_S_diff <- oxy_report2$Oxy_CTD_P - oxy_report2$Oxy_CTD_S  # difference in sensor values 
+sensorstats=boxplot.stats(oxy_report2$P_S_diff)                      # boxplot stats on sensor difference values    
+sensor_outliers=which(oxy_report2$P_S_diff %in% sensorstats$out)     # pulls out outlier rows in sensor differences 
+
+oxy_report3 <- oxy_report2[!oxy_report2$ID %in% sensor_outliers,] #remove the sensor outliers from oxy_2, using the ID field. 
+row.names(oxy_report3) <- 1:nrow(oxy_report3)
+oxy_report2$ID<-row.names(oxy_report2)
+summary(oxy_report2)
+
+
+# Step 3: Find outliers between winkler replicates ------------------
+
+oxy_report3$winkdiff <- oxy_report3$Oxy_W_Rep1 - oxy_report3$Oxy_W_Rep2                                # difference winkler replicates 
+winkstats=boxplot.stats(oxy_report3$winkdiff)                 # calculates boxplot stats on winkler rep differences            
+wink_outliers=which(oxy_report3$winkdiff %in% winkstats$out)
+
+oxy_report4 <- oxy_report3[!oxy_report3$ID %in% wink_outliers,] #remove the outliers using the ID field. 
+row.names(oxy_report4) <- 1:nrow(oxy_report4)
+oxy_report4$ID<-row.names(oxy_report4)
+
+
+# Step 4 - Find outliers in primary sensor vs. Winkler ---------------------------
+
+#Create a field that captures the average winkler difference when present, and single replicate values:
+oxy_report4$avg_wink <- rowMeans(oxy_report4[c('Oxy_W_Rep1', 'Oxy_W_Rep2')], na.rm=TRUE) #setting na.rm=TRUE will include single replicate in field.
+
+#Create a field that subtracts the average winkler from the sensor values
+oxy_report4$Pwinkdiff <- (oxy_report4$Oxy_CTD_P - oxy_report4$avg_wink)
+oxy_report4$Swinkdiff <- (oxy_report4$Oxy_CTD_S - oxy_report4$avg_wink)
+
+
+Mean_Pwinkdiff <- mean(oxy_report4$Pwinkdiff, na.rm=T)  #calculate mean difference 
+wink_psensordiff = oxy_report4$Pwinkdiff - Mean_Pwinkdiff                            # difference in sensor values 
+wink_psensor_stats = boxplot.stats(wink_psensordiff)                      # boxplot stats on wink_sensor difference values 
+wink_psensor_outliers = which(wink_psensordiff %in% wink_psensor_stats$out)  # pulls out outlier rows in wink_sensor differences 
+
+oxy_report5 <- oxy_report4[!oxy_report4$ID %in% wink_psensor_outliers,] #remove the bad wink_psensor from oxy_3, using the ID field. 
+row.names(oxy_report5) <- 1:nrow(oxy_report5)
+oxy_report5$ID<-row.names(oxy_report5)
+
+
+# Step 5: Find outliers in secondary sensor vs. Winkler ---------------------------
+
+Mean_Swinkdiff <- mean(oxy_report5$Swinkdiff, na.rm=T)  #calculate mean difference 
+wink_ssensordiff = oxy_report5$Swinkdiff - Mean_Swinkdiff  # difference in sensor values 
+wink_ssensor_stats = boxplot.stats(wink_ssensordiff)                      # boxplot stats on wink_sensor difference values 
+wink_ssensor_outliers = which(wink_ssensordiff %in% wink_ssensor_stats$out)  # pulls out outlier rows in wink_sensor differences 
+
+oxy_report6 <- oxy_report5[!oxy_report5$ID %in% wink_ssensor_outliers,] #remove the bad wink_ssensor values
+row.names(oxy_report6) <- 1:nrow(oxy_report6)
+oxy_report6$ID<-row.names(oxy_report6)
+```
+
+
+(ref:figB2-caption) Difference between the dissolved oxygen sensor and corresponding bottle measurements for both the primary (yellow) and secondary (purple) sensor data collected across Events 001 and 220, with outliers removed using the 1.5*IQR method. Equations of the linear models between the primary (yellow) and secondary (blue) sensor values and their associated Winkler values are also shown.
+
+```{r, figureB2, results="asis", include=TRUE, fig.pos = "H", out.width="90%", echo=FALSE, fig.align = "center", fig.cap = "(ref:figB2-caption)"}
+
+ggplot(oxy_report6) +
+  geom_point(aes(x=EVENT, y=Pwinkdiff, color = "goldenrod1"), size=3, alpha=0.8) +
+  stat_smooth(aes(x=EVENT, y=Pwinkdiff, color="goldenrod1"), method = lm, se = TRUE, alpha=0.3) +
+  geom_point(aes(x=EVENT, y=Swinkdiff, color = "slateblue3"), size=3, alpha=0.8) +
+  stat_smooth(aes(x=EVENT, y=Swinkdiff, color="slateblue3"), method = lm, se = TRUE, alpha=0.3) +
+  scale_color_identity(guide = "legend", name=NULL, labels = c("Primary - Mean Winkler", "Secondary - Mean Winkler")) +
+  guides(colour = guide_legend(label.theme = element_text(size=15))) +
+  theme_bw()+
+  ylab("Sensor - Mean Winkler")+
+  xlab("Event") +
+  theme(legend.position = "top") +
+  theme(axis.text.y=element_text(size=15)) +
+  theme(axis.text.x=element_text(size=15)) +
+  theme(axis.title.y=element_text(size=16)) +
+  theme(axis.title.x=element_text(size=16)) +
+  theme(plot.margin = margin(0.4, 0.4, 0.4, 0.4, "cm")) +
+  stat_poly_eq(parse=T, aes(x=EVENT, y=Pwinkdiff, label = ..eq.label..), color="goldenrod", size=5, formula=y~x) + 
+  stat_poly_eq(parse=T, aes(x=EVENT, y=Swinkdiff, label = ..eq.label..), color= "slateblue3", size=5, formula=y~x, vjust = 2)
+
+```
+\clearpage
+
+
+## Outlier detection and removal - Winkler replicates 
+
+Data calibrations are only as good as the reference samples used to correct the data (SBE, 2024a). Therefore, outliers in the difference values between Winkler replicates, when collected, should be identified and removed prior to conducting post-mission calibration. Outliers in the Winkler replicate data were identified using the Interquartile Range (IQR) method. A data point was considered an outlier and removed from the calibration process if the difference between replicates, sensors, or sensors minus replicates was outside 1.5 times the interquartile range (1.5*IQR) calculated from box plot statistics.
+
+Of the 98 data points where Winkler replicates were collected, 10 (10%) had difference values that fell outside 1.5*IQR and were considered outliers (Figure \@ref(fig:figureB3)). These 10 records were removed from subsequent analysis. The mean Winkler value was 6.4506 ± 1.4684 ml/l (mean ± SD) after outlier removal.
+
+
+\vspace*{0.2in}
+
+
+(ref:figB3-caption) Comparison of Winkler replicates measured during the 2025 spring AZMP mission (EN728). Differences outside 1.5*IQR (horizontal dashed blue lines) are considered outliers (red dots) and were removed from the calibration process. Boxplot statistics are as follows: Median = 0.0045, IQR min = -0.0240, IQR max = 0.0450.
+
+```{r figureB3, fig.asp =0.7, fig_align = "center", fig.pos = "H", echo=FALSE, include=TRUE, fig.cap="(ref:figB3-caption)"}
+
+rep1<-oxy_report$Oxy_W_Rep1
+rep2<-oxy_report$Oxy_W_Rep2
+
+winkdiff=rep1-rep2                                # difference winkler replicates 
+winkstats=boxplot.stats(winkdiff)                 # calculates boxplot stats on winkler rep differences            
+wink_outliers=which(winkdiff %in% winkstats$out)  # pulls out outlier rows in winkler rep differences  
+
+par(mar = c(4, 4, 0.1, 0.1))
+
+plot(winkdiff, xlab="Ordered by increasing event and row index", ylab="Winkler Rep 1 - Rep 2 (ml/L)", cex.lab=1.3)
+points(wink_outliers, winkdiff[wink_outliers], pch=19, col="red")
+abline(winkstats$stats[3],0, col="blue")        #median
+abline(winkstats$stats[1],0, col="blue", lty=3) # plot lower limit - IQR min
+abline(winkstats$stats[5],0, col="blue", lty=3) # plot upper limit - IQR max
+```
+
+\clearpage
+
+```{r, eval=TRUE, include=FALSE}
+
+oxy_report2 <- oxy_report[!oxy_report$ID %in% wink_outliers,] #remove the outliers from oxy_report, using the ID field. 
+row.names(oxy_report2) <- 1:nrow(oxy_report2)
+oxy_report2$ID<-row.names(oxy_report2) 
+summary(oxy_report2) 
+mean(oxy_report2$avg_wink, na.rm=TRUE)
+sd(oxy_report2$avg_wink, na.rm=TRUE)
+
+```
+\clearpage
+
+
+## Primary oxygen sensor calibration
+
+### Outlier detection between sensor and Winkler values
+
+Outliers between the sensor data and average Winkler data for both the primary and secondary sensors were also identified and removed. The purpose of this was to produce the _NewSoc_ and slope correction ratios using only data that exhibited a small offset between the sensors and bottle measurements. 
+
+Outliers were identified by calculating a ‘threshold field’ (TF) using the following equation, where _SBE 43 O_$_2$ _sensor_ is the CTD sensor oxygen, and _WINKLER O_$_2$ is the average dissolved oxygen data from the bottle samples, measured by Winkler titrations: 
+
+$$ TF = (SBE~43~O_2 -\overline{WINKLER~O_2}) - mean(SBE~43~O_2 - \overline{WINKLER~O_2})~~~(4)  $$     
+Values outside 1.5*IQR of the threshold field were considered outliers. Using this method, a total of 21 outliers were identified for the primary sensor (see Figure \@ref(fig:figureB4)), and were subsequently removed from further analysis.
+
+\vspace*{0.4in}
+```{r, eval=TRUE, include=FALSE}
+
+# Step #2 - Find outliers in primary sensor vs. Winkler ---------------------------
+
+  oxy_report2$p_winkavg=(oxy_report2$Oxy_CTD_P - oxy_report2$avg_wink)  #The difference between the primary sensor and Winkler replicate average
+  oxy_report2$threshold_p=(oxy_report2$p_winkavg - (mean(oxy_report2$p_winkavg, na.rm=T))) # Threshold variable to look for outliers (Primary SBE O2 - averaged Winkler O2) - mean(Primary SBE O2 - averaged Winkler O2)
+  
+  p_winkavg <- oxy_report2$p_winkavg  #isolate the p_winkavg column (different between SBE sensor oxy and mean Winkler oxy)
+  p_winkavg_mean<-mean(oxy_report2$p_winkavg, na.rm=T)  #calculate mean difference 
+  
+  wink_psensordiff = p_winkavg - p_winkavg_mean                            # difference in sensor values 
+  wink_psensor_stats = boxplot.stats(wink_psensordiff)                      # boxplot stats on wink_sensor difference values 
+  wink_psensor_outliers=which(wink_psensordiff %in% wink_psensor_stats$out)  # pulls out outlier rows in wink_sensor differences 
+  
+  oxy_report3 <- oxy_report2[!oxy_report2$ID %in% wink_psensor_outliers,] #remove the bad wink_psensor from oxy_report3, using the ID field. 
+  row.names(oxy_report3) <- 1:nrow(oxy_report3)
+  oxy_report3$ID<-row.names(oxy_report3)
+  nrow(oxy_report2)
+  nrow(oxy_report3)
+
+```
+
+
+(ref:figB4-caption) Outliers (red dots) outside the 1.5*IQR (horizontal dashed blue line) of the threshold fields for the primary oxygen sensor. Boxplot statistics are as follows: Median = -0.0434, IQR min = -0.2908, IQR max = 0.3328.
+
+```{r figureB4, fig.pos = "H", fig.asp=0.7, out.height="45%", out.width="85%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figB4-caption)"}
+
+par(mar = c(4, 4, 0.8, 0.1)) 
+
+#Plot the sensor vs. Winkler avg from above
+
+plot(wink_psensordiff, xlab="", ylab="Primary threshold ((SBE-Winkler) - mean(SBE-Winkler))", cex.lab=1.2)
+points(wink_psensor_outliers, wink_psensordiff[wink_psensor_outliers], pch=19, col="red")
+abline(wink_psensor_stats$stats[3],0, col="blue")        # median
+abline(wink_psensor_stats$stats[1],0, col="blue", lty=3) # plot lower limit
+abline(wink_psensor_stats$stats[5],0, col="blue", lty=3) # plot upper limit
+
+```
+
+\clearpage
+
+### NewSoc and slope correction ratio calculation
+
+The _NewSoc_ value for the primary sensor was then calculated using Equation #2 above. The sensor data were then corrected by multiplying them by the ratio between the _NewSoc_ and the _PreviousSoc_ (0.6089 and 0.5966 respectively, Table \@ref(tab:tableB1)), as in Equation #3 above. Figure \@ref(fig:figureB5) shows the relationship between the corrected and uncorrected sensor data against the mean Winkler values. The corrected sensor data (in blue) roughly demonstrated a 1:1 relationship with the Winkler data. Before correction, the mean difference between the CTD sensor data and mean Winkler values was 0.1481 ± 0.1282 ml/L (mean ± SD). After correction, the mean difference was reduced to 0.0142 ± 0.5966 ml/L, resulting in a notable improvement to the data.
+
+
+```{r, eval=TRUE, include=FALSE}
+
+# Step #3 - Calculate New Soc Value for Primary Oxygen Sensor (#1648) -------------------------------
+
+#enter old primary Soc value here from calibration sheet or .xml: 
+previousSOC_1648 = 0.6089 
+
+#calculate new Soc:
+newSOC_1648 <- previousSOC_1648*(mean(oxy_report3$avg_wink / oxy_report3$Oxy_CTD_P, na.rm=T)) 
+
+#calculate ratio that will be multiplied by the CTD data:
+newSOC_1648_ratio <- newSOC_1648/previousSOC_1648
+
+#create a new column of corrected primary oxygen sensor data:
+oxy_report3$Cor_CTD_P_1648 = newSOC_1648_ratio * oxy_report3$Oxy_CTD_P 
+
+#Calculate mean difference between corrected CTD and mean winkler, vs. uncorrected CTD and mean winkler: 
+meandiff_1648 = mean(oxy_report3$Oxy_CTD_P - oxy_report3$avg_wink, na.rm=TRUE)
+sddiff_1648 = sd(oxy_report3$Oxy_CTD_P - oxy_report3$avg_wink, na.rm=TRUE)
+
+meandiff_cor1648 = mean(oxy_report3$Cor_CTD_P_1648 - oxy_report3$avg_wink, na.rm=TRUE)
+sddiff_cor1648 = sd(oxy_report3$Cor_CTD_P_1648 - oxy_report3$avg_wink, na.rm=TRUE)
+```
+\vspace*{0.4in}
+
+
+(ref:figB5-caption) Primary oxygen sensor data before (black dots) and after (blue squares) correction using the slope correction ratio. The blue line represents the 1:1 reference line of the corrected data.
+
+```{r figureB5, fig.pos = "H", fig.asp=0.7, out.height="55%", out.width="95%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figB5-caption)"}
+
+#Plot corrected versus uncorrected data - Primary
+
+df_primary <- oxy_report3 %>%
+  dplyr::select(., Oxy_CTD_P, Cor_CTD_P_1648, avg_wink) %>%
+  tidyr::gather(., key, ctd, Oxy_CTD_P, Cor_CTD_P_1648) %>%
+  dplyr::mutate(., key=ifelse(key=="Oxy_CTD_P", "Uncorrected", "Corrected"))
+
+#linear model for abline
+lm_CTD_P <- lm(Cor_CTD_P_1648~ avg_wink, data=oxy_report3)
+int_CTD_P <- lm_CTD_P$coefficients[1]
+slope_CTD_P <- lm_CTD_P$coefficients[2]
+
+oxyplot_p <-ggplot(data=df_primary)+
+  geom_point(aes(x=avg_wink, y=ctd, colour=key, shape=key)) +
+  geom_abline(aes(slope=slope_CTD_P, intercept=int_CTD_P), colour="blue") +
+  scale_colour_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c("black", "blue"))+
+  scale_shape_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c(16, 22)) +
+  theme_bw()+
+  labs(x="\nWinkler values (ml/L)", y="Primary oxygen sensor (#1648) correction (ml/L)\n")+
+  theme(legend.position = c(0.14, 0.88))+
+  theme(legend.background = element_rect(fill='transparent')) +
+  guides(color=guide_legend(title="")) +
+  theme(axis.text.y=element_text(size=12)) + theme(axis.text.x=element_text(size=12))+
+  theme(axis.title.y=element_text(size=13)) + theme(axis.title.x=element_text(size=13))+
+  theme(legend.text=element_text(size=12))  
+oxyplot_p
+
+```
+\clearpage
+
+
+
+## Secondary oxygen sensor calibrations
+
+### Outlier detection between secondary sensor SN 4281 and Winkler values
+
+Outliers in the difference between the secondary sensor (SN 4281) and mean Winkler values collected across Events 001 and 193, minus the mean difference between the secondary sensor values and mean Winkler values calculated across all data points (Equation #4) were assessed using the 1.5*IQR method. A total of 27 outliers were identified for the secondary sensor (see Figure \@ref(fig:figureB6)), and were subsequently removed from further analysis.
+
+
+### NewSoc and slope correction ratio calculation
+
+The _NewSoc_ value for secondary sensor SN 4281 is shown in Table \@ref(tab:tableB1). Figure \@ref(fig:figureB7) shows the relationship between the corrected and uncorrected sensor data against the mean Winkler values. The corrected sensor data (in blue) roughly demonstrated a 1:1 relationship with the Winkler data. Before correction, the mean difference between the CTD sensor data and mean Winkler values was -0.0539 ± 0.0633 ml/L (mean ± SD). After correction, the mean difference between the sensor and mean Winkler values was positive and smaller (0.0103 ± 0.0722 ml/L). 
+
+\vspace*{0.2in}
+
+```{r, eval=TRUE, include=FALSE}
+
+# Step #4 - Find outliers in secondary sensor vs. Winkler ---------------------------
+
+oxy_report2$s_winkavg=(oxy_report2$Oxy_CTD_S - oxy_report2$avg_wink)  #The difference between the primary sensor and Winkler replicate average
+oxy_report2$threshold_s=(oxy_report2$s_winkavg - (mean(oxy_report2$s_winkavg, na.rm=T))) # Threshold variable to look for outliers (Primary SBE O2 - averaged Winkler O2) - mean(Primary SBE O2 - averaged Winkler O2)
+
+s_winkavg <- oxy_report2$s_winkavg  #isolate the p_winkavg column (different between SBE sensor oxy and mean Winkler oxy)
+s_winkavg_mean<-mean(oxy_report2$s_winkavg, na.rm=T)  #calculate mean difference 
+
+wink_ssensordiff = s_winkavg - s_winkavg_mean                            # difference in sensor values 
+wink_ssensor_stats = boxplot.stats(wink_ssensordiff)                      # boxplot stats on wink_sensor difference values 
+wink_ssensor_outliers=which(wink_ssensordiff %in% wink_ssensor_stats$out)  # pulls out outlier rows in wink_sensor differences 
+
+oxy_report3 <- oxy_report2[!oxy_report2$ID %in% wink_ssensor_outliers,] #remove the bad wink_psensor from oxy_report3, using the ID field. 
+row.names(oxy_report3) <- 1:nrow(oxy_report3)
+oxy_report3$ID<-row.names(oxy_report3)
+nrow(oxy_report2)
+nrow(oxy_report3)
+
+```
+
+
+(ref:figB6-caption) Outliers (red dots) outside the 1.5*IQR (horizontal dashed blue line) of the threshold fields for the secondary oxygen sensor (SN 4281) used between Events 001 and 220. Boxplot statistics are as follows: Median = -0.0209, IQR min = -0.1790, IQR max = 0.1501.
+
+```{r figureB6, fig.pos = "H", fig.asp=0.7, out.height="45%", out.width="85%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figB6-caption)"}
+
+par(mar = c(4, 4, 0.8, 0.1)) 
+
+#Plot the sensor vs. Winkler avg from above
+
+plot(wink_ssensordiff, xlab="Ordered by increasing event and row index", ylab="Secondary threshold ((SBE-Winkler) - mean(SBE-Winkler))", cex.lab=1.2)
+points(wink_ssensor_outliers, wink_ssensordiff[wink_ssensor_outliers], pch=19, col="red")
+abline(wink_ssensor_stats$stats[3],0, col="blue")        # median
+abline(wink_ssensor_stats$stats[1],0, col="blue", lty=3) # plot lower limit
+abline(wink_ssensor_stats$stats[5],0, col="blue", lty=3) # plot upper limit
+```
+\clearpage
+
+
+```{r, eval=TRUE, include=FALSE}
+
+# Step #5 - Calculate New Soc Value for Secondary Oxygen Sensor (#4281) -------------------------------
+
+#enter old primary Soc value here from calibration sheet or .xml: 
+previousSOC_4281=0.50237
+
+#calculate new Soc:
+newSOC_4281 <- previousSOC_4281*(mean(oxy_report3$avg_wink / oxy_report3$Oxy_CTD_S, na.rm=T)) 
+
+#calculate ratio that will be multiplied by the CTD data:
+newSOC_4281_ratio <- newSOC_4281/previousSOC_4281 
+
+#create a new column of corrected secondary oxygen sensor data:
+oxy_report3$Cor_CTD_S_4281 = newSOC_4281_ratio * oxy_report3$Oxy_CTD_S 
+
+#Calculate mean difference between corrected CTD and mean winkler, vs. uncorrected CTD and mean winkler: 
+meandiff_4281 = mean(oxy_report3$Oxy_CTD_S - oxy_report3$avg_wink, na.rm=TRUE)
+sddiff_4281 = sd(oxy_report3$Oxy_CTD_S - oxy_report3$avg_wink, na.rm=TRUE)
+
+meandiff_cor4281 = mean(oxy_report3$Cor_CTD_S_4281 - oxy_report3$avg_wink, na.rm=TRUE)
+sddiff_cor4281 = sd(oxy_report3$Cor_CTD_S_4281 - oxy_report3$avg_wink, na.rm=TRUE)
+
+```
+
+
+(ref:figB7-caption) Secondary oxygen sensor (SN 4281) from Events 001 to 220 before (black dots) and after (blue squares) correction using the slope correction ratio. The blue line represents the 1:1 reference line of the corrected data.
+
+```{r figureB7, fig.pos = "H", fig.asp=0.7, out.height="55%", out.width="95%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figB7-caption)"}
+
+#Plot corrected versus uncorrected data - Secondary 4281
+
+df_secondary_4281 <- oxy_report3 %>%
+  dplyr::select(., Oxy_CTD_S, Cor_CTD_S_4281, avg_wink) %>%
+  tidyr::gather(., key, ctd, Oxy_CTD_S, Cor_CTD_S_4281) %>%
+  dplyr::mutate(., key=ifelse(key=="Oxy_CTD_S", "Uncorrected", "Corrected"))
+
+#linear model for abline
+lm_CTD_S_4281 <- lm(Cor_CTD_S_4281~ avg_wink, data=oxy_report3)
+int_CTD_S_4281 <- lm_CTD_S_4281$coefficients[1]
+slope_CTD_S_4281 <- lm_CTD_S_4281$coefficients[2]
+
+oxyplot_4281 <-ggplot(data=df_secondary_4281)+
+  geom_point(aes(x=avg_wink, y=ctd, colour=key, shape=key)) +
+  geom_abline(aes(slope=slope_CTD_S_4281, intercept=int_CTD_S_4281), colour="blue") +
+  scale_colour_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c("black", "blue"))+
+  scale_shape_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c(16, 22)) +
+  theme_bw()+
+  labs(x="\nWinkler values (ml/L)", y="Secondary oxygen sensor (#4281) correction (ml/L)\n")+
+  theme(legend.position = c(0.14, 0.88))+
+  theme(legend.background = element_rect(fill='transparent')) +
+  guides(color=guide_legend(title="")) +
+  theme(axis.text.y=element_text(size=12)) + theme(axis.text.x=element_text(size=12))+
+  theme(axis.title.y=element_text(size=13)) + theme(axis.title.x=element_text(size=13))+
+  theme(legend.text=element_text(size=12))  
+oxyplot_4281
+
+```
+
+\vspace*{-0.2in}
+
+```{r tableB1, results="asis"}
+
+#Create the Soc table attributes
+sensors <- c("Primary SBE 43 O2 sensor (1648)", "Secondary SBE 43 O2 sensor (4281)")
+soc_old <- c(previousSOC_1648, previousSOC_4281)
+soc_new <- c(newSOC_1648, newSOC_4281)
+ratio <- c(newSOC_1648_ratio, newSOC_4281_ratio)
+
+Soc_table <- tibble(sensors, soc_old, soc_new, ratio)
+
+colnames(Soc_table) <- c("Sensor", "PreviousSoc", "NewSoc", "Ratio")
+
+kable(Soc_table, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = FALSE,
+    format = "latex",
+    digits=4,
+    escape = FALSE,
+    align = "l",
+    caption = "PreviousSoc, NewSoc, and the ratio between the two for the primary and secondary oxygen sensors used during the 2025 spring AZMP mission (EN728).") %>% 
+    kableExtra::column_spec(1, width = "20em") %>%
+    kableExtra::column_spec(3, width = "4.5em") %>%
+    kableExtra::column_spec(4, width = "4.5em") %>%
+    kableExtra::row_spec(0, bold = TRUE, font_size = 12)
+```
+
+\clearpage
+

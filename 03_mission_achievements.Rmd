@@ -1,0 +1,55 @@
+# Mission Achievements {#mission-achievements}
+
+A total of 14 objectives were identified during the planning stages of the 2025 spring AZMP mission (see Table \@ref(tab:table2)). In addition to the primary objective to collect spring observations of physical, chemical, and lower trophic-level biological parameters across the Scotian Shelf and eastern Gulf of Maine in support of the AZMP, a request was made by DFO's North Atlantic Right Whale Research Unit led by Research Scientist Angelia Vanderlaan, to re-deploy a passive acoustic monitoring (PAM) mooring in Roseway Basin. This mooring was deployed in the fall of 2024 during the DY18402 AZMP mission to monitor the presence and distribution of North Atlantic right whales, but unintentionally resurfaced several months later due to malfunction of its release system. The third primary objective of the EN728 mission was to recover 15 acoustic receiver moorings located in an array at the head of the Gully MPA in support of a collaboration between DFO and the Ocean Tracking Network to evaluate habitat use of the Gully MPA by tagged species, particularly juvenile Atlantic halibut, providing insights into their behaviour and movement patterns. In addition to the three primary objectives, the mission would also support 6 secondary AZMP/DFO objectives, and 5 objectives in support of external (to DFO) partners and collaborators. 
+
+Upon conclusion of the mission, most objectives were completed or partially completed. CTD-Rosette and ring net deployments were successfully completed on all core and secondary AZMP stations, and the PAM mooring was deployed successfully in Roseway Basin. Of the 15 OTN acoustic receiver moorings, only 12 were successfully recovered. Although the moorings at stations GUL02 and GUL03 could communicate when interrogated and were released, they did not resurface. Evaluation of the health status of each mooring indicated both were tilted beyond a vertical position, suggesting the releases may be lying on the seabed. Communications could not be established with the mooring at station GUL05, despite repositioning the vessel in different directions and distances around the mooring coordinates. 
+
+Data and sample collection on the mission also supported a number of partnerships and collaborations with external organizations. Seabird observations were collected while transiting during the mission by a wildlife observer from Environment and Climate Change Canada's (ECCC) Canadian Wildlife Service, in support of ECCC's Eastern Seabirds at Sea program. In support of a collaborative agreement between DFO and the Woods Hole Oceanographic Institution, an Imaging Flow Cytobot (IFCB) was installed in the Special Purpose Laboratory on board the _Endeavor_, and recorded high-resolution images of phytoplankton during the transits.
+
+Data and samples were collected by three Dalhousie University students and/or assistants in support of student projects led by the Dalhousie University laboratories of Drs. Carly Buchwald, Julie LaRoche, and Erin Bertrand. The focus of this research was on evaluating nitrate stable isotope signatures and variability in the nutrient supply of the Scotian Shelf (Buchwald); understanding phytoplankton growth, phytoplankton-bacterial interactions, and the role of cobalamin and other B-vitamins in phytoplankton community composition and productivity (Bertrand); and characterizing the microbial communities of the Scotian Shelf through the collection of eDNA samples (LaRoche). This research is considered complementary to the monitoring conducted by the AZMP, and aids in the understanding of the biogeochemical processes of the Scotian Shelf.
+
+Additional time was available at the end of the survey to support data and samples collection for other projects. A total of 7 CTD-Rosette and ring net stations located on the leeward side of Sable Island were occupied in support of a DFO-led project to evaluate the effects of grey seal fertilization on the surrounding water column. Samples and data were also collected from these stations in support of an associated Dalhousie University project to evaluate whether vitamin fertilization is also occurring due to the increasing presence of grey seals during their overwintering period on Sable Island. Stations HL_08 through HL_11 of the extended Halifax Line were occupied in support of DFO's Atlantic Zone Off-Shelf Monitoring Program [AZOMP](https://www.bio.gc.ca/science/monitoring-monitorage/azomp-pmzao/azomp-pmzao-en.php). A final objective to collect surface waters from AZMP high-frequency station Halifax 2 was added during the mission in support of a Dalhousie University project to evaluate the presence of cobalamin during the spring season. Additionally this experiment will assess cobamide remodelling capacity of the microbial community at this near-coastal site.
+
+
+## Program Impacts {#impacts}
+
+A total of 16 hours were lost to the program due to inclement weather as the vessel approached station LCM_01 of the Laurentian Channel Mouth line. However, this had a negligible impact on the EN728 mission and completion of its objectives as several weather contingency days were built into the mission schedule. Additionally, station HL_12 of the extended Halifax Line, which was added to the program after all planned objectives were completed, could not be sampled due to time constraints and concerns that an upcoming weather system would impact the ability of the vessel to return to port on time for disembarkation. No other time was lost due to inclement weather, and no loss of program time was incurred due to scientific equipment malfunction.
+
+\clearpage
+
+
+\pagestyle{empty} 
+
+```{r table2, results="asis", include=TRUE, echo=FALSE}
+
+#array stretch increases row height. Will apply to all tables in document
+
+table2 <- readr::read_csv(file.path("files", "ObjectiveTable_EN728.csv"))
+table2_df <- data.frame(table2)
+table2_df[is.na(table2_df)] <- "" #convert NAs in Comment field to blank entries
+
+kbl(table2_df, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = TRUE,
+    format = "latex",
+    escape = TRUE,
+    align = "l",
+    caption = "Primary and secondary objectives of the spring AZMP mission (EN728), and their status upon conclusion of the mission.") %>%
+    kableExtra::row_spec(c(0,4,11,17), bold = TRUE, font_size = 12) %>%
+    kableExtra::row_spec(c(3,4,10,11,16,17), hline_after = TRUE) %>%
+    kableExtra::row_spec(c(1,2,3), extra_css = "vertical-align:middle;") %>%
+  #specify the column widths as table will spill over right margin
+    kableExtra::column_spec(1, width = "38em", latex_valign = "m") %>%
+    kableExtra::column_spec(2, width = "6em", latex_valign = "m") %>%
+    kableExtra::column_spec(3, width = "12em", latex_valign = "m") %>%
+    kableExtra::kable_styling(font_size = 11, latex_options = "striped", stripe_color="ltgray") %>%
+    landscape()
+  
+
+
+```
+
+\clearpage
+
+\pagestyle{plain} <!-- reinstate page style after removed for multi-page landscape table --> 

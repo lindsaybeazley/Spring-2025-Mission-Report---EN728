@@ -1,0 +1,379 @@
+# Calibration of Conductivity Sensor Data {#appC}
+
+
+## Background
+
+The process for the calibration of SBE sensor conductivity data is outlined in SeaBird's 'Computing Temperature & Conductivity Slope & Offset Correction Coefficients from Lab Calibration and Salinity Bottle Samples' [Application Note No. 31](https://www.seabird.com/sbe-4-conductivity-sensor/product-downloads?id=60762467707) (SBE, 2024b). The conductivity sensor _slope_ and _offset_ terms allow for the correction of sensor drift that may occur between factory calibrations. Both terms are extracted from a linear regression between measurements of true conductivity (i.e., as measured from bottle samples) and sensor conductivity, and are applied to the correct sensor output following Equation 1 below:
+
+$$ Corrected~Conductivity = SBE~sensor~conductivity * slope + offset~~~(1) $$  
+
+Bottle samples collected on the EN728 mission for the purpose of salinity determination were analyzed at sea using a Guildline 'Autosal' laboratory salinometer owned and maintained by the Ocean Engineering and Technology Section (OETS) at the Bedford Institute of Oceanography. This system was situated in its own temperature-controlled Salinometer Laboratory on board the vessel. The autosal measures the salinity of a sample in terms of the ratio of its electrical conductivity at a temperature of 15$^\circ$C and pressure of 1 atmosphere to that of an IAPSO Standard Seawater reference sample, which was calibrated to a solution of potassium chloride (KCl) with a practical salinity of 35, temperature of 15$^\circ$C, and pressure of 0 dbar. The actual conductivity of the IAPSO Standard Seawater is computed by the autosal software based on the standard's K15 value (provided by the manufacturer) and the conductivity of the KCl solution (42.914 mS/cm). Once the conductivity ratio of the bottle sample is determined, bottle salinity is then calculated from the conductivity ratio following the PSS-78 algorithm for the calculation of Practical Salinity (IOC, 2010). 
+
+To compare sensor conductivity values against bottle measurements, bottle salinity values from the Autosal must be converted to absolute bottle conductivity at the temperature and pressure of the CTD package when the bottles were closed. This conversion is computed using the 'gsw_C_from_SP' function in the R package 'gsw', which uses the Gibbs Seawater formulation to calculate absolute electrical conductivity from Practical Salinity, temperature, and pressure. Note that as the units from the gsw_C_from_SP() function are mS/cm, the output of this function must be divided by 10 to ensure consistent units with the SBE conductivity sensor outputs (Siemens per meter, S/m). Linear models are then fitted between bottle conductivity and sensor conductivity (in S/m), and the intercept (offset) and slope values are extracted from the linear regression summaries. The new slope and offset are then applied (the slope multiplied and the offset added) to the sensor data following Equation 1. 
+
+The Autosal was set up in the Special Purpose Laboratory on board the RV _Endeavor_. Initially, a water bath set to 24$^\circ$C was used to acclimate the water samples to a consistent temperature, and the salinometer accounts for this temperature difference so that the output sample conductivity ratios are at 15$^\circ$C. However, near the beginning of the mission, the room temperature would occasionally fluctuate and increase to higher than 24$^\circ$C, resulting in the bath to shut off intermittently. This temperature fluctuation appeared to result in a higher rate of bottle samples being flagged as outside the range of the Autosal's suppression switch setting, and lower-quality measurements. After the first sample run was conducted, attempts were made to better control the temperature in the Special Purpose Laboratory by closing the door to the room and turning on the air conditioner to ~21$^\circ$C. This resulted in less suppression range warnings and higher quality results.
+
+The primary (Serial No. 0618, calibrated on January 23, 2024) and secondary (Serial No. 2822, also calibrated on January 23, 2024) conductivity sensors remained on the CTD-Rosette package for the entire duration of the mission (Table \@ref(tab:table4)). As the sensors were not changed, slope and offset values were calculated across the full range of CTD events (001 to 220).
+
+
+
+## Evaluation of outliers in EN728 conductivity sensor data
+
+Prior to the calculation of the new slope and offset values, outliers were evaluated between A) the primary and secondary conductivity sensor data, and B) between sensor conductivity and bottle conductivity. For the evaluation between the primary and secondary sensor data, a total of 235 of 1408 data points fell outside the 1.5*IQR and were removed from the calibration process (Figure \@ref(fig:figureC1)), leaving a total of 1173 data points for further assessment.
+
+
+## Calculation of bottle conductivity from bottle salinity and evaluation of outliers between sensor and bottle data
+
+Next, the difference between the primary conductivity sensor and bottle conductivity was evaluated. When bottle conductivity was compared against the primary sensor data, a total of 28 outliers were identified (Figure \@ref(fig:figureC2)) and subsequently removed from the dataset. For the secondary sensor and bottle data, 32 outliers were identified (Figure \@ref(fig:figureC2)) and removed. After all outliers were removed, the difference between the conductivity sensor values and bottle conductivity data were, on average, 5.6888 x 10$^{-4}$ ± 0.0003 S/m (mean ± SD) and -0.0002 ± 0.0002 S/m for the primary and secondary sensors, respectively.
+
+
+
+```{r, eval=TRUE, Include=FALSE}
+
+input_sal <- readr::read_csv(file.path("R:/SRC/2020s/2025/EN728/DART_reports", "EN728_Salinity_Summary.csv"))
+input_sal_df <- data.frame(input_sal) 
+
+sal = input_sal_df %>% 
+  dplyr::arrange(EVENT, SAMPLE_ID) %>% #properly orders salinity report by event and sample ID. ** May need to change Sample ID to lowercase.
+  dplyr::mutate(ID=row.names(input_sal_df)) #Adds a new variable called ID that can be used to plot the data and/or keep it sorted properly
+sal$ID <- as.numeric(sal$ID)
+
+
+#Add columns that convert T68 temperature to T90, if applicable. This is required in the gsw_C_from_SP function below (if applicable)
+#sal$Temp_CTD_P_90 <- T90fromT68(sal$Temp_CTD_P)
+#sal$Temp_CTD_S_90 <- T90fromT68(sal$Temp_CTD_S)
+
+#Convert bottle salinity to absolute bottle conductivity, in mS/cm. To convert the return value to conductivity ratio, divide by 42.914.
+sal$botcond <- gsw_C_from_SP(sal$Sal_Rep1, t=(sal$Temp_CTD_P + sal$Temp_CTD_S)/2, p=sal$PRESSURE)  
+
+
+#Divide bottle conductivity by 10 to convert it to S/m. Now it is consistent with the CTD conductivity sensor units.
+sal$botcond_Sm <- sal$botcond/10
+
+
+#Identify fields used below in outlier evaluation
+primary <- sal$Cond_CTD_P
+secondary <- sal$Cond_CTD_S
+sal$Cond_CTD_diff <- sal$Cond_CTD_P - sal$Cond_CTD_S
+
+```
+
+\vspace*{0.2in}
+
+(ref:figC1-caption) Comparison between salinity values derived from the primary and secondary conductivity sensor data collected during the 2025 spring AZMP mission (EN728). Differences outside 1.5*IQR (horizontal dashed blue lines) are considered outliers (red dots) and were removed from the calibration process. Boxplot statistics are as follows: Median = 0.0007, IQR min = 0.0002, IQR max = 0.0013.
+
+```{r figureC1, fig.asp =0.7, out.height="42%", out.width="88%", fig_align = "center", fig.pos = "H", echo=FALSE, include=TRUE, fig.cap="(ref:figC1-caption)"}
+
+# Step 1: Evaluation of Conductivity Sensor Values ------------------------------------
+
+sensordiff=primary-secondary                            # difference in sensor values 
+sensorstats=boxplot.stats(sensordiff)                   # boxplot stats on sensor difference values    
+sensor_outliers=which(sensordiff %in% sensorstats$out)  # pulls out outlier rows in sensor differences 
+
+par(mar = c(4, 4, 0.2, 0.1))
+
+plot(sensordiff, xlab="Ordered by increasing event and row index", ylab="Primary conductivity - secondary conductivity (S/m)", cex.lab=1.3)
+points(sensor_outliers, sensordiff[sensor_outliers], pch=19, col="red")
+abline(sensorstats$stats[3],0, col="blue")        # median
+abline(sensorstats$stats[1],0, col="blue", lty=3) # plot lower limit - IQR min
+abline(sensorstats$stats[5],0, col="blue", lty=3) # plot upper limit - IQR max
+```
+  
+\clearpage
+
+```{r, eval=TRUE, include=FALSE}
+
+sal_2 <- sal[!sal$ID %in% sensor_outliers,] #remove the sensor outliers from sal 
+row.names(sal_2) <- 1:nrow(sal_2)
+sal_2$ID<-row.names(sal_2) 
+nrow(sal) #1408
+nrow(sal_2) #1173
+
+```  
+
+
+```{r, eval=TRUE, include=FALSE}
+
+# Step 2: Evaluation of Salinometer (Bottle) Samples - Primary Conductivity (S/m) - Bottle Conductivity (S/m) ------------
+
+primary2 <- sal_2$Cond_CTD_P
+rep1a <- sal_2$botcond_Sm
+
+botl_psensordiff=primary2-rep1a                         # difference primary sensor and bottle conductivity 
+botl_psensordiff_stats=boxplot.stats(botl_psensordiff)  # boxplot stats on bottle_primarysensor difference values 
+botl_psensor_outliers=which(botl_psensordiff %in% botl_psensordiff_stats$out)  # pulls out outlier rows in bottle_primarysensor differences. 29 outliers
+  
+sal_3 <- sal_2[!sal_2$ID %in% botl_psensor_outliers,] 
+row.names(sal_3) <- 1:nrow(sal_3)
+sal_3$ID<-row.names(sal_3)  
+
+
+# Secondary Conductivity (S/m) - Bottle Conductivity (S/m) ------------
+
+secondary2<-sal_2$Cond_CTD_S
+rep1b<-sal_2$botcond_Sm
+
+botl_ssensordiff=secondary2-rep1b                       # difference secondary sensor and bottle conductivity 
+botl_ssensordiff_stats=boxplot.stats(botl_ssensordiff)  # boxplot stats on bottle_secondarysensor difference values 
+botl_ssensor_outliers=which(botl_ssensordiff %in% botl_ssensordiff_stats$out)  # pulls out outlier rows in bottle_secondary sensor differences.  outliers. 
+  
+sal_4 <- sal_2[!sal_2$ID %in% botl_ssensor_outliers,] 
+row.names(sal_4) <- 1:nrow(sal_4)
+sal_4$ID<-row.names(sal_4) 
+
+
+mean(sal_3$Cond_CTD_P - sal_3$botcond_Sm, na.rm=TRUE)
+sd(sal_3$Cond_CTD_P - sal_3$botcond_Sm, na.rm=TRUE)
+
+mean(sal_4$Cond_CTD_S - sal_4$botcond_Sm, na.rm=TRUE)
+sd(sal_4$Cond_CTD_S - sal_4$botcond_Sm, na.rm=TRUE)
+```  
+
+
+
+(ref:figC2-caption) Comparison between primary (top) and secondary (bottom) conductivity sensor data and bottle conductivity (S/m) collected during the EN728 mission. Differences outside 1.5*IQR (horizontal dashed blue lines) are considered outliers (red dots) and were removed from the calibration process. Boxplot statistics are as follows: A) Median = 5.9783 x 10$^{-4}$, IQR min = -8.1908 x 10$^{-5}$, IQR max = 1.2652 x 10$^{-3}$; B) Median = -0.0002, IQR min = -0.0008, IQR max = 0.0003.
+
+```{r figureC2, fig.pos = "H", fig.asp=0.66, out.height="42%", out.width="88%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figC2-caption)"}
+
+par(mar = c(4, 4, 0.2, 0.1)) 
+
+# plot the primary sensor-bottle difference, outliers, mean and ranges
+plot(botl_psensordiff, xlab="", ylab="Primary conductivity - bottle conductivity (S/m)", cex.lab=1.3)
+points(botl_psensor_outliers, botl_psensordiff[botl_psensor_outliers],pch=19, col="red")
+abline(botl_psensordiff_stats$stats[3],0, col="blue", lty=1) # median
+abline(botl_psensordiff_stats$stats[1],0, col="blue", lty=3) # plot lower limit
+abline(botl_psensordiff_stats$stats[5],0, col="blue", lty=3) # plot upper limit
+
+
+# plot the secondary sensor-bottle difference, outliers, mean and ranges
+plot(botl_ssensordiff, xlab="Ordered by increasing event and row index", ylab="Secondary conductivity - bottle conductivity (S/m)", cex.lab=1.3)
+points(botl_ssensor_outliers, botl_ssensordiff[botl_ssensor_outliers],pch=19, col="red")
+abline(botl_ssensordiff_stats$stats[3],0, col="blue", lty=1) # median
+abline(botl_ssensordiff_stats$stats[1],0, col="blue", lty=3) # plot lower limit
+abline(botl_ssensordiff_stats$stats[5],0, col="blue", lty=3) # plot upper limit
+```
+\clearpage
+
+
+
+## Calculation of new slope and offset terms for conductivity data correction
+
+Linear models were then fitted to the bottle conductivity and sensor conductivity data. The intercept (offset) and slope values were extracted from the linear regression summaries for both models (see Table \@ref(tab:tableC1)). These were then applied to the raw conductivity sensor data (dataset with sensor outliers removed; 1173 data points) following Equation 1 above. 
+
+Figure \@ref(fig:figureC3) shows the relationship between the primary and secondary conductivity sensor data before (black circles) and after (blue squares) correction using the calculated slope and offset values from Table \@ref(tab:tableC1). The mean difference between the uncorrected and corrected primary and secondary conductivity sensor data and their corresponding bottle conductivity values is shown in Table \@ref(tab:tableC2), while Figure \@ref(fig:figureC4) shows the relationship between the corrected and uncorrected sensor data against their corresponding bottle conductivity values (in S/m). These results show that while correction of the primary conductivity sensor resulted in a minor improvement to sensor values (marked by the lower mean difference between the sensor outputs and bottle values, after correction), correction of the secondary conductivity sensor resulted in a larger mean difference between the sensor outputs and bottle values, suggesting that only the primary sensor should be corrected.
+
+\vspace*{0.4in}
+
+```{r, eval=TRUE, include=FALSE}
+
+# Step 4: Calculate new slope and intercept (offset) terms to correct sensor data ------------------------------------
+
+#Primary slope and intercept calculations.
+plot(sal_3$botcond_Sm, sal_3$Cond_CTD_P)
+fit1=lm(sal_3$botcond_Sm ~ sal_3$Cond_CTD_P)
+abline(fit1)
+summary(fit1)
+primary_intercept<-summary(fit1)$coefficients[1,1]#intercept
+primary_intercept 
+primary_slope<-summary(fit1)$coefficients[2,1]#slope
+primary_slope 
+
+
+#Secondary slope and intercept calculations.
+plot(sal_4$botcond_Sm, sal_4$Cond_CTD_S)
+fit2=lm(sal_4$botcond_Sm ~ sal_4$Cond_CTD_S)
+abline(fit2)
+summary(fit2)
+secondary_intercept<-summary(fit2)$coefficients[1,1]#intercept
+secondary_intercept
+secondary_slope<-summary(fit2)$coefficients[2,1]#slope
+secondary_slope
+
+
+#Now create new columns that show the original Cond_CTD_P and Cond_CTD_S data after corrections were applied
+## Data are multiplied by the slope and added to the intercept.
+
+```
+
+
+
+```{r tableC1, results="asis"}
+
+#Create a table showing the new slope and intercept values
+
+sensors <- c("Primary SBE 4 Conductivity Sensor (0618)", "Secondary SBE 4 Conductivity Sensor (2822)")
+offset <- c(primary_intercept, secondary_intercept)
+slope <- c(primary_slope, secondary_slope)
+
+
+SlopeOffset_table <- tibble(sensors, offset, slope)
+
+colnames(SlopeOffset_table) <- c("Sensor", "Offset", "Slope")
+
+kable(SlopeOffset_table, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = FALSE,
+    format = "latex",
+    digits=4,
+    escape = FALSE,
+    align = "l",
+    caption = "Revised offset and slope terms calculated for the primary and secondary conductivity sensors used during the 2025 spring AZMP mission (EN728).") %>% 
+    kableExtra::column_spec(1, width = "20em") %>%
+    kableExtra::column_spec(2, width = "5em") %>%
+    kableExtra::column_spec(3, width = "5em") %>%
+    kableExtra::row_spec(0, bold = TRUE, font_size = 12) %>%
+    kable_styling(latex_options = "hold_position")
+```
+
+
+(ref:figC3-caption) Difference between corrected (blue) versus uncorrected (black) conductivity sensor data collected on the EN728 mission. Outliers between sensors have been removed. Black dots represent the difference between uncorrected primary and secondary conductivity sensors (mean ± SD = 0.0007 ± 0.0002 S/m), while blue squares represent the difference between the corrected primary and secondary sensors (mean ± SD = -2.2191 x 10$^{-5}$ ± 0.0002 S/m).
+
+```{r figureC3, fig.asp =0.7, fig_align = "center", fig.pos = "H", echo=FALSE, include=TRUE, fig.cap="(ref:figC4-caption)"}
+
+#Plot the difference between sensors before and after correction 
+
+par(mar = c(4, 4, 3, 0.1)) 
+
+plot(sal_5$Cond_CTD_P - sal_5$Cond_CTD_S, ylab="Primary conductivity - secondary conductivity (S/m)", 
+     xlab="Ordered by increasing event and row index", cex.lab=1.3, pch=20, col=1, ylim=c(-0.003, 0.003))
+abline(h=mean(sal_5$Cond_CTD_P - sal_5$Cond_CTD_S, na.rm=T), col="black")
+
+par(new=TRUE)
+
+plot(sal_5$Cond_CTD_P_cor - sal_5$Cond_CTD_S_cor, ylab="", xlab="", cex.lab=1.3, pch=22, col="blue", axes=F, ylim=c(-0.006, 0.006))
+abline(h=mean(sal_5$Cond_CTD_P_cor - sal_5$Cond_CTD_S_cor, na.rm=T), col="blue")
+
+```
+\vspace*{0.4in}
+
+```{r, eval=TRUE, include=FALSE}
+
+#Calculate mean (+-SD) difference between uncorrected primary and secondary sensor values
+mean(sal_5$Cond_CTD_P - sal_5$Cond_CTD_S, na.rm=T)
+sd(sal_5$Cond_CTD_P - sal_5$Cond_CTD_S, na.rm=T)
+
+#Calculate mean (+-SD) difference between corrected primary and secondary sensor values
+mean(sal_5$Cond_CTD_P_cor - sal_5$Cond_CTD_S_cor, na.rm=T)
+sd(sal_5$Cond_CTD_P_cor - sal_5$Cond_CTD_S_cor, na.rm=T)
+
+#Calculate mean (+-SD) difference between corrected primary and bottle values
+#Uncorrected Primary vs bottle:
+uncorrectedprimary <- mean(sal_5$Cond_CTD_P - sal_5$botcond_Sm, na.rm=T)
+uncorrectedprimarysd <- sd(sal_5$Cond_CTD_P - sal_5$botcond_Sm, na.rm=T)
+#Corrected Primary vs bottle:
+correctedprimary <- mean(sal_5$Cond_CTD_P_cor - sal_5$botcond_Sm, na.rm=T)
+correctedprimarysd <- sd(sal_5$Cond_CTD_P_cor - sal_5$botcond_Sm, na.rm=T)
+
+#Calculate mean (+-SD) difference between corrected secondary and bottle values
+#Uncorrected Secondary vs bottle:
+uncorrectedsecondary <- mean(sal_5$Cond_CTD_S - sal_5$botcond_Sm, na.rm=T)
+uncorrectedsecondarysd <- sd(sal_5$Cond_CTD_S - sal_5$botcond_Sm, na.rm=T)
+#Corrected Secondary vs bottle:
+correctedsecondary <- mean(sal_5$Cond_CTD_S_cor - sal_5$botcond_Sm, na.rm=T)
+correctedsecondarysd <- sd(sal_5$Cond_CTD_S_cor - sal_5$botcond_Sm, na.rm=T)
+
+```
+
+
+```{r tableC2, results="asis"}
+
+#Create a table showing the mean difference between primary and secondary sensor conductivity and bottle values
+
+sensors <- c("Primary Conductivity Sensor (0618)", "Secondary Conductivity Sensor (2822)")
+uncorrectedmean <- c(uncorrectedprimary, uncorrectedsecondary)
+correctedmean <- c(correctedprimary, correctedsecondary)
+
+
+meantable <- tibble(sensors, uncorrectedmean, correctedmean)
+
+colnames(meantable) <- c("Sensor", "Mean Difference - Uncorrected", "Mean Difference - Corrected")
+
+kable(meantable, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = FALSE,
+    format = "latex",
+    digits=5,
+    escape = FALSE,
+    align = "l",
+    caption = "Mean difference between uncorrected and corrected sensor conductivity versus their corresponding bottle conductivity values for the 2025 spring AZMP mission (EN728).") %>% 
+    kableExtra::column_spec(1, width = "18em") %>%
+    kableExtra::column_spec(2, width = "9em") %>%
+    kableExtra::column_spec(3, width = "9em") %>%
+    kableExtra::row_spec(0, bold = TRUE, font_size = 12) %>%
+    kable_styling(latex_options = "hold_position")
+```
+\clearpage
+
+(ref:figC4-caption) Primary (top) and secondary (bottom) conductivity sensor data before (black dots) and after (blue squares) correction using the determined slopes and offsets. The blue line represents the 1:1 reference line of the corrected data.
+
+```{r figureC4, fig.pos = "H", fig.asp=0.66, out.height="45%", out.width="90%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figC4-caption)"}
+
+#Plot corrected versus uncorrected data - Primary
+
+#First, tidy up data:
+
+df_primary <- sal_5 %>%
+  dplyr::select(., Cond_CTD_P, Cond_CTD_P_cor, botcond_Sm) %>%
+  tidyr::gather(., key, ctd, Cond_CTD_P, Cond_CTD_P_cor) %>%
+  dplyr::mutate(., key=ifelse(key=="Cond_CTD_P", "Uncorrected", "Corrected"))
+
+#linear model for abline
+lm_pri <- lm(Cond_CTD_P_cor ~ botcond_Sm, data=sal_5)
+int_p <- lm_pri$coefficients[1]
+slope_p <- lm_pri$coefficients[2]
+
+primaryplot <-ggplot(data=df_primary)+
+  geom_point(aes(x=botcond_Sm, y=ctd, colour=key, shape=key)) +
+  geom_abline(aes(slope=slope_p, intercept=int_p), colour="blue") +
+  scale_colour_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c("black", "blue"))+
+  scale_shape_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c(16, 22)) +
+  theme_bw()+
+  labs(x="", y="Primary conductivity (#0618) (S/m)\n")+
+  theme(legend.position = c(0.14, 0.88))+
+  xlim(2.25, 4.25)+
+  ylim(2.25, 4.25)+
+  theme(legend.background = element_rect(fill='transparent')) +
+  guides(color=guide_legend(title="")) +
+  theme(axis.text.y=element_text(size=12)) + theme(axis.text.x=element_text(size=12))+
+  theme(axis.title.y=element_text(size=13)) + theme(axis.title.x=element_text(size=13))+
+  theme(legend.text=element_text(size=12))  
+primaryplot
+
+
+# Secondary
+
+df_secondary <- sal_5 %>%
+  dplyr::select(., Cond_CTD_S, Cond_CTD_S_cor, botcond_Sm) %>%
+  tidyr::gather(., key, ctd, Cond_CTD_S, Cond_CTD_S_cor) %>%
+  dplyr::mutate(., key=ifelse(key=="Cond_CTD_S", "Uncorrected", "Corrected"))
+
+#linear model for abline
+lm_sec <- lm(Cond_CTD_S_cor ~ botcond_Sm, data=sal_5)
+int_s <- lm_sec$coefficients[1]
+slope_s <- lm_sec$coefficients[2]
+
+secondaryplot <-ggplot(data=df_secondary)+
+  geom_point(aes(x=botcond_Sm, y=ctd, colour=key, shape=key)) +
+  geom_abline(aes(slope=slope_s, intercept=int_s), colour="blue") +
+  scale_colour_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c("black", "blue"))+
+  scale_shape_manual(name="", breaks = c("Uncorrected", "Corrected"), values= c(16, 22)) +
+  theme_bw()+
+  labs(x="\nBottle conductivity values (S/m)", y="Secondary conductivity (#2822) (S/m)\n")+
+  theme(legend.position = c(0.14, 0.88))+
+  xlim(2.25, 4.25)+
+  ylim(2.25, 4.25)+
+  theme(legend.background = element_rect(fill='transparent')) +
+  guides(color=guide_legend(title="")) +
+  theme(axis.text.y=element_text(size=12)) + theme(axis.text.x=element_text(size=12))+
+  theme(axis.title.y=element_text(size=13)) + theme(axis.title.x=element_text(size=13))+
+  theme(legend.text=element_text(size=12))  
+secondaryplot
+
+```
+
+\clearpage
+
+<!-- At the end of your appendices add: -->
+`r if(knitr:::is_latex_output()) '% end csasdown appendix'`

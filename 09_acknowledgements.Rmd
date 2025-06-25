@@ -1,0 +1,17 @@
+# Acknowledgements {#acks}
+
+We would like to thank all science staff of the EN728 mission for their dedication and hard work to make the mission a success. We also thank Commanding Officer Christopher Armanetti, as well as the officers, crew, and marine technicians of the RV _Endeavor_ for their dedication and support during the mission.
+
+We thank Jay Barthelotte, Regional Vessel Coordinator, DFO Maritimes Region, for coordinating the logistics of the vessel's scheduling and arrival. We would like to thank Jennifer Field, Mike Vining, and Katie Warman (Ocean Engineering and Technology Section, DFO) for their assistance in the mobilization and/or demobilization of the science equipment used on the mission. We thank Dennis McGillicuddy and Mike Brosnahan (WHOI) for facilitating the installation of the IFCB system on board. 
+
+We would also like to thank xxxx and xxxx (DFO OESD) for their review of this report. This document
+was produced using the [csasdown R package](https://github.com/pbs-assess/csasdown?tab=readme-ov-file) using RStudio version 2023.12.0 (R Core Team, 2023). 
+
+Funding for this mission was provided by DFO's National Science At-Sea Program.
+
+\clearpage
+
+
+
+
+

@@ -1,0 +1,29 @@
+# Data Management Summary {#DM}
+
+
+## Metadata Collection and Archival
+
+Both digital and paper logs were used to record sample and event metadata during the EN728 mission. Paper logs included CTD ‘deck’ sheets, ring net, mooring, Argo float, chlorophyll laboratory log and underway sample log. ELOG, an electronic logbook system for collecting event metadata, was used to log the time, ship’s position, and sounding associated with certain logistical aspects of each gear deployment (e.g., deployed, on bottom, and recovered). This electronic logbook was accessible on the ship’s network and mobile devices. In addition an ELOG observations log was used to record detailed comments and observations on cruise activities and an underway log was used to record the samples collected, time and position. The ELOG configuration, deployment and backup was managed using Git locally, and was pushed to GitHub upon return (https://github.com/dfo-mar-odis/azmp_elog/tree/EN728). The recording of metadata in ELOG facilitates the upload of discrete and plankton data to the BioChem repository.
+
+ELOG was run from a Windows 10 laptop in the Main Laboratory near the CTD acquisition computer, while a second laptop was placed in the Wet Laboratory to assist the ring net operator in logging their events. The GPS and sounder feed for ELOG from the ship's network was read using Python scripts called from the ELOG configuration file. Two tablets were used to access ELOG while conducting ring net operations on the starboard deck.
+
+Digital filtration logs were used by laboratory staff for logging details associated with the processing of collected water. These filtration logs are generated using the R statistical software from the planned water budget for each station. A laptop was placed in the Main Laboratory to facilitate the access and modification of these digital filtration logs.  
+
+All digital data were backed up at least daily on the network or on an external hard drive. At the end of the mission all data were copied and paper logs were scanned and sent to BIO Data Services for upload and archival into their protected server.
+
+
+
+## DFO At-sea Reporting Template (DART)
+
+The in-house DFO At-sea Reporting Template [DART](https://github.com/dfo-mar-odis/dart) was used to compile and reformat all discrete data collected and analyzed at sea (dissolved oxygen, chlorophyll, and salinity) to check the data and facilitate later processing and archiving. This process involved loading the ELOG files, the CTD bottle (.btl) files containing and the discrete bottle measurements. DART was also used to produce reports of the linked bottle and sensor measurements, to facilitate the quality control of both sensor and bottle measurements while at sea.
+
+
+
+## Data Submission to Global Telecommunications Systems
+
+Global Telecommunications Systems (GTS) houses oceanographic data for the primary purpose of weather forecasting. However, the data are also available for modellers to assimilate into their climate forecasting. DFO’s representative in GTS is Environment and Climate Change Canada.
+
+AZMP submits CTD data to GTS via MEDS (Marine Environmental Data Section, Ocean Sciences Division, DFO) at regular intervals throughout each mission to MEDS-SDMM.XNCR@dfo-mpo.gc.ca. The data must be sent within 30 days of collection. The files submitted are a customized .txt file called an IGOSS file, which is generated using the in-house CTD post-processing software CTDDAP.  
+
+
+\clearpage

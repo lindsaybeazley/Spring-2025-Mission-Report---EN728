@@ -1,0 +1,35 @@
+# Participants {#sec:participants}
+
+A total of 13 scientific staff participated in the EN728 mission (see Table \@ref(tab:table1)), including 9 DFO personnel, 1 seabird observer from Environment and Climate Change Canada's Canadian Wildlife Service, 2 Dalhousie University students representing the laboratories of Drs. Carolyn Buchwald, Julie LaRoche, and Erin Bertrand, and 1 graduate student from the University of Rhode Island's Graduate School of Oceanography. The chief scientist was Lindsay Beazley (OESD-OMOS), with Chris Gordon (OESD-OMOS) as night shift captain. Science staff were split into day (0700-1900) and night (1900-0700) watches.
+
+Mooring technician Adam Hartling from the Ocean Engineering and Technology Section (OETS) led all mooring operations and also assisted with CTD operations and the management of the Deep SUNA data during day shift. 
+
+A total of 14 ship's crew sailed on the mission plus 2 URI marine technicians. The lead marine technician was Claire Mayorga (24:00 - 12:00), with Lynne Butler covering 12:00 - 24:00. Both marine technicians assisted with the deployment and recovery of all scientific equipment and led the communications with the winch operator while on deck, and also managed the IFCB system during the mission. The Captain of the vessel was Master Christopher Armanetti.
+
+
+\hspace*{-0.5in}
+
+```{r table1, results="asis", include=TRUE, echo=FALSE}
+
+table1 <- readr::read_csv(file.path("files", "Participants_EN728.csv"))
+table1_df <- data.frame(table1)
+names(table1_df)[1] <- ""
+
+kbl(table1_df, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = TRUE,
+    format = "latex",
+    escape = FALSE,
+    align = "l",
+    caption = "List of science staff that participated in the 2025 spring AZMP mission (EN728). Affiliation is Department-Division-Section. OMOS = Ocean Monitoring and Observation Section; OETS = Ocean Engineering and Technology Section; OSM = Ocean Stressors and Modeling.") %>% 
+  kableExtra::row_spec(0, bold = TRUE, font_size = 12) %>%
+  kableExtra::column_spec(1, width = "1em") %>%
+  kableExtra::column_spec(2, width = "8em") %>%
+  kableExtra::column_spec(3, width = "10em") %>%
+  kableExtra::column_spec(4, width = "15em") %>%
+  kableExtra::column_spec(5, width = "3em") %>%
+  kableExtra::kable_styling(latex_options = "repeat_header", repeat_header_method = "replace")
+```
+\clearpage
+

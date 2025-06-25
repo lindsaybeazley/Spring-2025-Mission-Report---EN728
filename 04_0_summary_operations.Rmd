@@ -1,0 +1,153 @@
+# Summary of Operations {#ops-summary}
+
+\pagestyle{plain} <!-- reinstate page style after removed for multi-page landscape table --> 
+
+Figure \@ref(fig:figure1) and Table \@ref(tab:table3) provide an overview of operations conducted on the 2025 spring AZMP mission (EN728). A summary of the ELOG comments on various issues encountered during operations is provided in the 'Comments' field. A total of 220 gear operations (events) were conducted at xxx unique stations. Of these 220 operations, 200 consisted of CTD-Rosette, ring net, and Argo float deployments in support of the AZMP. A single passive acoustic monitoring (PAM) mooring was deployed in Roseway Basin in support of DFO's Cetacean Research and Monitoring team, while 12 of the 15 OTN acoustic receiver moorings were recovered in the Gully MPA and nearby surrounds. High-frequency station HL_02 on the Halifax Line was occupied on three occasions during the mission. Argo floats were released at stations HL_07 and LL_09, after the conclusion of CTD and ring net operations.
+
+
+## Itinerary and Scenario Planning
+
+The order of operations was influenced by use of the provisional ['cruisePlanning'](https://github.com/clayton33/cruisePlanning) R package (Layton, C. cruisePlanning: Oceanographic Cruise Planning, Version 0.1.0). This package generates a full mission itinerary based on the station locations and operational time, and the transit distance and speed between them, and was developed as a tool to help chief scientists evaluate and select mission scenarios that result in maximum use of the allocated vessel time. Mission scenarios were routinely updated and re-generated throughout the mission and were used to make decisions on the order of stations and their activities. A conservative transit speed of 10 knots was used for between-station transits. 
+
+\clearpage
+
+(ref:fig1-caption) Location of stations sampled and gear deployments made during the 2025 spring AZMP mission (EN728). Note that multiple operations at single stations may not be fully reflected in the map due to overlapping labels. 
+
+```{r figure1, fig.pos='H', fig_align = "center", fig.cap = "(ref:fig1-caption)"}
+#trim argument above is to remove white space above and below ggplot after the document is knitted. left,bottom,right,top
+#read in station events
+
+table1 <- readr::read_csv("R:\\SRC\\2020s\\2025\\EN728\\Dart_reports\\EN728_Elog_Summary.csv")
+table1_sub <- table1[c("Event", "Station", "Instrument", "Min_Lat", "Min_Lon", "SDATE", "DURATION")]
+table1_df <- data.frame(table1_sub)
+
+table1_df$Instrument <- plyr::revalue(table1_df$Instrument, c("202" = "202 \U00B5m net", "76" = "76 \U00B5m net", "DEPLOY MOORING" = "Mooring Deployment", "RECOVER MOORING" = "Mooring Recovery", "ARGO" = "Argo", "SECCHI DISK" = "Secchi Disc"))
+
+uniquestations <- length(unique(table1_df$Station)) #to get number of unique stations for report.
+
+#read in cruise track points from TSG
+table2 <- readr::read_csv("R:\\SRC\\2020s\\2025\\EN728\\TSG\\Timeseries\\EN728_TSG_hourly.csv", col_names=TRUE)[,14:15] 
+table2_df <- data.frame(table2)
+table2_df$longitude <- table2_df$longitude*-1
+#table2_df <- table2_df[complete.cases(table2_df[ , 3:4]),] #removes empty lat/lon rows, as package sf can't handle them
+
+
+#convert event table and cruise track to sf objects for easier plotting
+events <- st_as_sf(table1_df, coords = c("Min_Lon", "Min_Lat"), 
+                   crs = 4326, agr = "constant") #WGS84 = CTD code # 4326
+
+track <- st_as_sf(table2_df, coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
+
+#create lines out of point layers:
+track$ID <- 1 #create consistent ID field to merge the different lat/lons into a single geometry:
+
+trackline <- track %>% 
+ group_by(ID) %>%
+ dplyr::summarise(do_union=FALSE) %>%
+ st_cast("LINESTRING")
+
+
+#load baselayer shapefiles
+provs<-sf::read_sf("C:/Baselrs_Shapefls/WorldCountries.shp")
+bathy <-sf::read_sf("C:/Baselrs_Shapefls/ABC_Contours_100m.shp")
+
+#crop contour shapefile so it doesn't take as long to run
+bathy2 <- sf::st_crop(bathy, c(xmin=-75, xmax=-55, ymin=40, ymax=50)) 
+
+
+
+events$Instrument <-ordered(events$Instrument, levels = c("CTD", "202 \U00B5m net", "76 \U00B5m net", "Argo", "Mooring Recovery", "Mooring Deployment", "Secchi Disc"))
+
+Ring202 <- events %>%
+  filter(Instrument == "202 \U00B5m net")
+
+Ring76 <- events %>%
+  filter(Instrument == '76 \U00B5m net')
+
+Argo <- events %>%
+  filter(Instrument == 'Argo')
+
+Secchi <- events %>%
+  filter(Instrument == 'Secchi Disc')
+
+
+
+map <- ggplot()+
+  geom_sf(data=bathy2, color= "grey70", size=0.1, alpha = 0.4) +
+  geom_sf(data = provs) +
+  geom_sf(data = trackline, size=0.5) +
+  geom_sf(data = events, aes(colour=Instrument, size=Instrument, shape=Instrument)) + #size must be inside aesthetics or else scale_size_manual won't apply
+  scale_colour_manual(name="Deployments", labels = c("CTD-Rosette", "202 \U00B5m ring net", "76 \U00B5m ring net", "Argo float", "Mooring recovery", "Mooring deployment", "Secchi disc"), values = c("blue", "green","orange", "red", "yellow", "black", "purple")) +
+  scale_size_manual(name="Deployments", labels = c("CTD-Rosette", "202 \U00B5m ring net", "76 \U00B5m ring net", "Argo float", "Mooring recovery","Mooring deployment", "Secchi disc"), values = c(3.1,2,2,2,3.1,3,1)) +
+  scale_shape_manual(name="Deployments", labels = c("CTD-Rosette", "202 \U00B5m ring net", "76 \U00B5m ring net", "Argo float", "Mooring recovery", "Mooring deployment", "Secchi disc"), values = c(19,19,19,19,18,17,19)) +
+  geom_sf(data = Ring202, aes(colour=Instrument), size=2, color="green") +
+  geom_sf(data = Ring76, aes(colour=Instrument), size=2, color="orange") +
+  geom_sf(data = Argo, aes(colour=Instrument), size=2, color="red") +
+  geom_sf(data = Secchi, aes(colour=Instrument), size=1, colour="purple") +
+  annotation_scale(location = "bl", width_hint = 0.1) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(8.08, "in"), pad_y = unit(4.9, "in"),
+                         height = unit(1, "cm"), width = unit(1, "cm"),
+                         style = north_arrow_fancy_orienteering) +
+  coord_sf(xlim = c(-70.2, -55.9), ylim = c(41.5, 48)) +
+  theme_bw()+
+  theme(legend.position = c(0.158, 0.713)) + #left number is horizontal movement, right number is vertical
+  theme(legend.text=element_text(size=10)) +
+  theme(legend.title=element_text(size=11)) +
+  theme(legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid')) +
+  theme(legend.spacing.x = unit(0.1, 'cm'))
+map
+
+```
+
+\clearpage
+
+\pagestyle{empty} <!-- remove page style again for another multi-page landscape table -->
+
+
+```{r table3, results="asis"}
+table3 <- readr::read_csv("R:\\SRC\\2020s\\2025\\EN728\\Dart_reports\\EN728_Elog_Summary.csv")
+table3_sub <- table3[c("Event", "Station", "Instrument", "Min_Lat", "Min_Lon", "SDATE", "AVG_SOUNDING",  "DURATION", "COMMENTS")]
+table3_df <- data.frame(table3_sub)
+table3_df$COMMENTS <- as.character(table3_df$COMMENTS)
+table3_df[is.na(table3_df)] <- "" #convert NAs in Comment field to blank entries
+table3_df$AVG_SOUNDING <- as.numeric(table3_df$AVG_SOUNDING)
+table3_df$AVG_SOUNDING <- round(table3_df$AVG_SOUNDING, digits = 0)
+
+                      
+table3_df$Instrument <- plyr::revalue(table3_df$Instrument, c("CTD" = "CTD/Rosette", "202"="202 \U00B5m net", "76"="76 \U00B5m net", "ARGO"= "Argo float", "DEPLOY MOORING" = "Mooring Deployment", "RECOVER MOORING" = "Mooring Recovery", "ARGO" = "Argo", "SECCHI DISC" = "Secchi Disc"))
+
+table3_df$Station <- plyr::revalue(table1_df$Station, c("GUL01MOORING" = "GUL01", "GUL02MOORING" = "GUL02", "GUL03MOORING" = "GUL03", "GUL04MOORING" = "GUL04", "GUL05MOORING" = "GUL05", "GUL06MOORING" = "GUL06",
+"GUL07MOORING" = "GUL07", "GUL08MOORING" = "GUL08", "GUL09MOORING" = "GUL09", "GUL10MOORING" = "GUL10",
+"GUL11MOORING" = "GUL11", "GUL12MOORING" = "GUL12", "GUL13MOORING" = "GUL13", "GUL14MOORING" = "GUL14",
+"GUL15MOORING" = "GUL15"))
+
+
+#create table
+               kbl(table3_df,
+                   booktabs = TRUE,
+                   linesep = "",
+                   longtable = TRUE,
+                   format = "latex",
+                   escape = TRUE,
+                   align = "l",
+                   digits = 4,
+                   col.names = c("Event",	"Station",	"Gear",	"Start Lat. (DD)",	"Start Lon. (DD)",	"Date",	"Mean Depth (m)", "Duration", "Comments"),
+                   caption = "Operations conducted at each station during the 2025 spring AZMP mission (EN728), ordered sequentially by Event number. Event coordinates (in decimal degrees - DD) reflect the ship's position at the time of deployment, as recorded using the ELOG meta-data logger. Comments are associated with the 'action' on which they were entered for each event: Aborted (failed event), Deployed (gear deployment), Bottom (gear at the bottom), and Recovered (gear recovery). Note that multiple comments/actions can be present for a single event.") %>%
+                    kableExtra::row_spec(c(0), bold = TRUE, font_size = 12) %>%
+                    kableExtra::column_spec(1, latex_valign = "m") %>%
+                    kableExtra::column_spec(2, latex_valign = "m") %>%
+                    kableExtra::column_spec(3, width = "7em", latex_valign = "m") %>%  
+                    kableExtra::column_spec(4, width = "5em", latex_valign = "m") %>% 
+                    kableExtra::column_spec(5, width = "5em", latex_valign = "m") %>% 
+                    kableExtra::column_spec(7, width = "3em", latex_valign = "m") %>%
+                    kableExtra::column_spec(8, width = "5em", latex_valign = "m") %>%
+                    kableExtra::column_spec(9, width = "12em", latex_valign = "m") %>%
+                    kableExtra::kable_styling(font_size = 11, latex_options = "striped", stripe_color="ltgray") %>%
+                    kableExtra::kable_styling(latex_options = "repeat_header", repeat_header_method = "replace") %>%
+                    landscape()
+```
+
+\clearpage
+
+

@@ -1,0 +1,102 @@
+<!-- The following code should appear at the beginning of the first appendix (if you have one)
+After that, all subsequent sections will be turned into appendices. -->
+
+`r if(knitr:::is_latex_output()) '% begin csasdown appendix'`
+`r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'`
+
+\pagestyle{plain} <!-- reinstate page style --> 
+
+
+# Evaluation of Sensor Data against Bottle Measurements {#appA}
+
+This appendix contains plots of dissolved oxygen and salinity sensor data against their corresponding Winkler and salinometer measurements, respectively. These plots were generated almost daily throughout the mission and used as a tool to A) monitor the relationship between the oxygen and conductivity sensor data and their corresponding laboratory measurements as a means of validating the sensor outputs, and B) evaluate the laboratory measurements for visual outliers.
+
+Plots were generated for each CTD cast using R scripts applied to the 'bottle reports' created using the DART application (see the [Data Management](#DM) section above for more details). The bottle reports contain only the sensor values associated with each bottle closure. Therefore, the plots in this appendix do not portray the full vertical resolution of the profile data. Note that replicate bottle samples are not collected for salinity, but are collected for dissolved oxygen at predetermined depths.
+
+\clearpage
+
+(ref:figA1-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 4 to 24. Note the variable range in the y-axis.
+
+```{r figureA1, fig.height=8.5, fig.width=6.6, fig.cap = "(ref:figA1-caption)"} 
+
+Oxy_report <- readr::read_csv(file.path("R:/SRC/2020s/2025/EN728/Dart_reports", "EN728_Oxygen_Rpt.csv"))
+Oxy_report_df <- data.frame(Oxy_report)
+
+ggplot(Oxy_report_df, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "black"), lwd=0.5) +
+    geom_line(aes(y=Oxy_CTD_S, color = "grey"), lwd=0.5, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "blue"), size=0.5) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "red"), size=0.5) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=12))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    theme(panel.grid.major = element_blank()) +
+    theme(panel.grid.minor = element_blank()) +
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=7)) +
+    theme(axis.text.x=element_text(size=7)) +
+    theme(axis.title.y=element_text(size=10)) +
+    theme(axis.title.x=element_text(size=10)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +2),
+    axis.title.x = element_text(vjust = -2)) +
+    
+    facet_wrap(~EVENT) +
+    theme(strip.text.x = element_text(size=8, face="bold"))+
+    theme(legend.position = "none") +
+    theme(panel.spacing.x = unit(0.1,'lines')) +
+    theme(strip.text.x = element_text(margin = margin(0.06, 0, 0.06, 0, "cm")))
+
+```
+
+\clearpage
+
+
+
+(ref:figA2-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 4 to 24. Note the variable range in the y-axis.
+
+```{r figureA2, fig.height=8.5, fig.width=6.6, fig.cap = "(ref:figA2-caption)"} 
+
+Sal_report <- readr::read_csv(file.path("R:/SRC/2020s/2025/EN728/Dart_reports/EN728_Salinity_Summary.csv"))
+Sal_report_df <- data.frame(Sal_report)
+
+
+ggplot(Sal_report_df, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "black"), lwd=0.5) +
+    geom_line(aes(y=Sal_CTD_S, color = "grey"), lwd=0.5, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=0.5) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    #guides(colour = guide_legend(label.theme = element_text(size=12))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    theme(panel.grid.major = element_blank()) +
+    theme(panel.grid.minor = element_blank()) +
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=7)) +
+    theme(axis.text.x=element_text(size=7)) +
+    theme(axis.title.y=element_text(size=10)) +
+    theme(axis.title.x=element_text(size=10)) +
+    scale_y_continuous(limits = c(30, 36)) +
+    theme(axis.title.y = element_text(vjust = +2),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT) +
+    theme(strip.text.x = element_text(size=8, face="bold"))+
+    theme(legend.position = "none") +
+    theme(panel.spacing.x = unit(0,'lines')) +
+    theme(strip.text.x = element_text(margin = margin(0.06, 0, 0.06, 0, "cm")))
+
+```
+
+
+\clearpage
+
+
+<!-- At the end of your appendices add: -->
+`r if(knitr:::is_latex_output()) '% end csasdown appendix'`
+

@@ -1,0 +1,162 @@
+## CTD-Rosette Operations {#ctd-operations}
+
+\pagestyle{plain} <!-- reinstate page style after removed for multi-page landscape table --> 
+
+### CTD-Rosette Configuration
+
+A 24, 10-L bottle CTD-Rosette system provided by URI was used for the duration of the EN728 mission. The CTD was configured in a steel protective cage mounted horizontally in the rosette frame. Table \@ref(tab:table4) shows a list of installed sensors on the CTD package along with their model numbers, date of last calibration, and owner. The CTD package included dual SeaBird Electronics (SBE) temperature, conductivity, and dissolved oxygen sensors, and a single Biospherical photosynthetically active radiation (PAR) sensor (rated to 2000 m), a WET Labs C-Star transmissometer, and a Valeport altimeter sensor. Two additional sensors, pH (SBE 18) and CDOM (Seapoint SUVF), were supplied by DFO's Ocean Engineering and Technology Section (OETS) for installation and use on the CTD package during the mission.
+
+A SBE Deep SUNA nitrate sensor was mounted horizontally to the CTD cage to collect vertical profiles of nitrate and other optical parameters during the mission, representing the first Maritimes Region AZMP mission in which nitrate sensor data were collected. The sensor was connected to its own submersible battery pack mounted horizontally to the rosette frame, and was set up to log data internally (i.e., not in live mode). After each CTD cast, the data from the SUNA was downloaded separately and archived using its associated UCI software. While the Deep SUNA's depth rating is 2000 m, its corresponding battery pack was only rated to 1000 m. Consequently, both the sensor and battery pack were removed from the rosette on stations deeper than 1000 m. 
+
+
+### CTD-Rosette Deployments
+
+Deployment of the CTD-Rosette was done using the J-frame and Winch 1 located on the starboard deck of the vessel. SBE Seasave acquisition software was operated using a shipboard acquisition computer and SBE 11 deck unit situated in the Main Laboratory. Communication between the CTD computer operator and the winch operator was done via radio. For deployments, two science staff were situated on deck to secure the rosette frame using tag lines, while a URI technician gave the hand signals to the winch operator to raise, lower, and payout the CTD-Rosette. Once the CTD-Rosette was deployed over the side and the tag lines were removed, the CTD computer operator turned on the deck unit and guided the winch operator to lower the package to 10 m depth for a 3-minute soak period, which served to trigger the pumps to turn on and allowed the sensors to acclimate. After the soak period, the CTD-Rosette was raised to the surface, and then sent on its downcast and deployed to approximately 5 m from bottom. During periods of inclement weather or high swell, the CTD package was lowered to within 7 to 10 m from the seabed. 
+
+Prior to recovery, the CTD deck unit was powered off after the surface bottles were closed. CTD-Rosette recovery procedures involved the use of gaffs and tag lines to secure the rosette frame after it breached the surface. Once on deck, the CTD-Rosette was secured using ratchet straps, and sampling of its Niskin bottles were done outside on deck.
+
+A total of 96 CTD casts were conducted during the EN728 mission, with no aborted casts. The CTD-Rosette worked very well throughout the mission, although several bottle misfires were noted (see Table \@ref(tab:table3). Bottles that consistently misfired were either removed from the carousel and re-positioned elsewhere, or had their trigger latch replaced (e.g., in the case of Niskin bottle # 7). See the [Operational Considerations and Issues of Note](#operation-issues) section below for further details.
+
+
+### CTD Data Post-Processing
+
+Once a CTD cast was completed, the raw CTD files (.hex, .hdr, .bl, and .xmlcon) were manually copied from the CTD acquisition computer to the ship's science network where they could be accessed from any networked computer on the vessel. From here, they were copied onto BIO's post-processing computer, where the CTD Data Acquisition and Processing System (CTDDAP, Beta version 6.1), an in-house wrapper application to facilitate downloading and processing of CTD data from various SBE instruments, was used to post-process the .hex files from each cast. This allowed for the creation of ODF (Ocean Data Format) files, BIO's in-house CTD file format, and other files necessary for DFO's archival procedures. The CTD data in each ODF file was binned into 0.5 dbar bins. 
+
+A preliminary R script was written to join the nitrate data from the SUNA sensor to the CTD data using time stamps. This required reprocessing the raw CTD files without bin averaging.
+
+
+### Water Sampling
+  
+Water samples were collected using 24, 10-L bottles installed on the rosette. An additional surface bottle was closed on every station in order to meet the water demands of all participants and laboratories. The number of water samples collected from each station depended on station depth and other characteristics. Standard AZMP depths (surface, 10, 20, 30, 40, 50, 60, 80, 100 m, and bottom) are consistently sampled at stations 100 m or less, while deeper bottles are typically collected at 500 m intervals (e.g., 1500, 2000 m). Water samples were processed according to standard AZMP protocols: nutrients, chlorophyll _a_, dissolved oxygen, and salinity: @Mitchell_2002; total inorganic carbon, total alkalinity, pCO$_2$, pH, and methane: @Dickson_2007; particulate organic carbon and nitrogen: https://www.nodc.noaa.gov/archive/arc0022/0001155/1.1/data/1-data/docs/common/proto-18.htm; coloured-dissolved organic matter (CDOM): @Mannino_2019; high-performance liquid chromatography (HPLC): @Head_1992; phytoplankton absorption: @Hoepffner_1992 & @Hoepffner_1993; and flow cytometry: @Li_2001. During occupation of AZMP high-frequency station HL_02 on the Halifax Line, integrated phytoplankton samples were collected by collating 50 mL of water from each of the 10 bottle depths sampled, and preserving the sample using 2% Lugol's preservative [@Mitchell_2002].
+
+Sample management included the assignment of unique 6-digit 'sticky IDs' to each Niskin bottle and sample vial. These IDs allow for unique identification of samples across the entire Maritimes Region AZMP timeseries. The ID range used for samples collected from the CTD-Rosette was 514025 to 515530.
+
+
+\clearpage
+
+\pagestyle{empty} 
+
+```{r table4, results="asis", include=TRUE, echo=FALSE}
+
+table4 <- readr::read_csv(file.path("files", "List_of_sensors_EN728.csv"))
+table4_df <- data.frame(table4)
+
+
+kbl(table4_df, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = TRUE,
+    format = "latex",
+    escape = TRUE,
+    align = "l",
+    col.names = c("Sensor",	"Model",	"Output Parameter", "QAT Output Variable Name",	"Serial No.",	"Calibration Date", "Owner"),
+    caption = "List of sensors included on the CTD system used during the 2025 spring AZMP mission on board the RV \\textit{Endeavor} (EN728). Model number and date of last calibration is shown.") %>% 
+    kableExtra::row_spec(c(0), bold = TRUE, font_size = 12) %>%
+    kableExtra::column_spec(1, width = "10em", latex_valign = "m") %>%  
+    kableExtra::column_spec(2, width = "10em", latex_valign = "m") %>%
+    kableExtra::column_spec(3, width = "6em", latex_valign = "m") %>%
+    kableExtra::column_spec(4, width = "8em", latex_valign = "m") %>%
+    kableExtra::column_spec(5, width = "7em", latex_valign = "m") %>%
+    kableExtra::column_spec(6, width = "6em", latex_valign = "m") %>%
+    kableExtra::column_spec(7, width = "4em", latex_valign = "m") %>%
+    kableExtra::kable_styling(latex_options = "repeat_header", repeat_header_method = "replace") %>%
+    landscape()
+```
+
+\clearpage
+
+\pagestyle{plain} <!-- reinstate page style after removed for multi-page landscape table --> 
+
+
+
+Table \@ref(tab:table5) shows the total number of samples collected for each parameter measured and evaluated by the AZMP from CTD-Rosette deployments at each station. Bottle samples collected for salinity determination were analyzed at sea using a DFO-owned Guildline Autosal 8410A Salinometer set up in the Special Purpose Laboratory. As the temperature seemed to fluctuate in this lab, salinity samples were analyzed with the door closed and air conditioning set to 23$^\circ$C to promote a consistent temperature and high-quality measurements.
+
+Dissolved oxygen samples were titrated and analyzed at sea after being stored in the fridge for several hours using a modified Winkler technique with automated electrical endpoint system, while chlorophyll samples were analyzed using a Turner Designs fluorometer after being stored for at least 24 hours in a -20$^\circ$C freezer. Samples collected for all other parameters were either stored at room temperature, refrigerated, or frozen for subsequent analysis ashore.
+
+
+### Data Accessibility
+
+Upon completion of this mission, the CTD data will undergo various quality control checks to correct metadata errors and/or erroneous CTD values (e.g., data spikes), and the primary and secondary conductivity and oxygen sensor data will be calibrated using bottle measurements following SeaBird's 'Computing Temperature & Conductivity Slope & Offset Correction Coefficients from Lab Calibration and Salinity Bottle Samples' [Application Note No. 31](https://www.seabird.com/sbe-4-conductivity-sensor/product-downloads?id=60762467707) [@SBE_2024a] and 'SBE 43 Dissolved Oxygen Sensor Calibration and Data Corrections' [Application Note No. 64-2](https://www.seabird.com/oxygen-sensors/sbe-43-dissolved-oxygen-sensor/family-downloads?productCategoryId=54627869932) [@SBE_2024b]; also described in @Beazley_2024). These final calibrated files are available in .ODF format by request to DFO.BIODataServices-BIOServicesdeDonnees.MPO@dfo-mpo.gc.ca, or can be downloaded directly in netCDF or other common formats from the Canadian Integrated Ocean Observing System (CIOOS) [ERDDAP](https://catalogue.cioos.ca/dataset/ca-cioos_9a4bd73f-12a2-40ff-a7c7-b961a1d113111). 
+
+Bottle measurements can be extracted from DFO's national repository for discrete bottle and plankton data, [BioChem](https://www.dfo-mpo.gc.ca/science/data-donnees/biochem/index-eng.html), or can be made available by request to DFO.BIODataServices-BIOServicesdeDonnees.MPO@dfo-mpo.gc.ca.
+
+\clearpage
+
+
+\pagestyle{empty} 
+
+```{r table5, results="asis", include=TRUE, echo=FALSE}
+
+filterlogs <- list.files("R:/SRC/2020s/2025/EN728/FilterLogs/completed", 
+                         pattern="KW.csv|NS.csv|NSMH.csv", full.names=TRUE) 
+
+
+ListFilterLogs <- NULL
+
+for (i in 1:length(filterlogs)){
+  
+  data <- read.csv(filterlogs[i], skip=6, header=T, colClasses="character")
+  getstation_event <- read.csv(filterlogs[i], colClasses="character")
+  station=as.data.frame(getstation_event[2,])
+  event=as.data.frame(getstation_event[1,])
+  colnames(station) <- 'STATION'
+  colnames(event) <- 'EVENT'
+  data2 <- cbind(station, event, data)
+  data3 <-dplyr::select(data2, c('STATION', 'EVENT', 'WINKLER', 'pCO2', 'TIC.TA', 'NUTS', 'SAL', 'CHL', 'POC.PON', 'HPLC', 'ABS', 'CDOM', 'CYTO'))
+  data3$STATION <- str_sub(data3$STATION, 10)
+  data3$EVENT <- str_sub(data3$EVENT, 7)
+  ListFilterLogs[[i]] <- do.call(cbind.data.frame, data3)
+  
+}
+
+CombinedFilterLogs <- do.call(rbind.data.frame, ListFilterLogs)
+
+SampleCount <- CombinedFilterLogs %>%
+  group_by(STATION, EVENT) %>%
+  summarise(across(everything(), nchar)) %>%
+  summarise(across(everything(), sum))
+
+table5_df <- data.frame(SampleCount)
+table5_df$EVENT <- as.numeric(as.character(table5_df$EVENT))
+table5_df <- table5_df[order(table5_df$EVENT),]
+
+
+#Create table
+kbl(table5_df, 
+    booktabs = TRUE,
+    linesep = "",
+    longtable = TRUE,
+    format = "latex",
+    escape = TRUE,
+    align = "l",
+    row.names=FALSE,
+    col.names = c("Station", "Event", "O2", "pCO2", "TIC/TA", "NUTS", "SAL", "CHL", "POC/ PON", "HPLC", "ABS",  "CDOM", "CYTO"),
+    caption = "Summary of water samples collected for each parameter sampled on the 2025 spring AZMP mission (EN728). Numbers represent the total number of samples per station, where O\\textsubscript{2} = dissolved oxygen, pCO\\textsubscript{2} = partial pressure of carbon dioxide, TIC/TA = total inorganic carbon and total alkalinity, NUTS = nutrients, SAL = salinity, CHL = chlorophyll, POC = particulate organic carbon, HPLC = high performance liquid chromatography, ABS = phytoplankton absorption, CDOM = coloured dissolved organic matter, and CYTO = flow cytometry.") %>% 
+    kableExtra::row_spec(c(0), bold = TRUE, font_size = 12) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header", repeat_header_method = "replace") %>%
+    kableExtra::column_spec(10, width = "3em") %>%
+    landscape()
+
+```
+\clearpage
+
+
+\pagestyle{plain} <!-- reinstate for final time in document --> 
+
+
+
+## Vertical Ring Net Tows
+
+At each station, a conical ring net with an aperture of 75 cm and rigged with 202 µm mesh (filtering ratio of 1:5) was towed vertically from near-bottom to the surface (or to a maximum of 1000 m) to collect samples used by the AZMP to describe changes in mesozooplankton abundance and biomass across the Scotian Shelf. Ring net operations were conducted from the vessel's J-frame using the secondary three-conductor electromechanical (EM) cable and winch (termed 'Winch 2'). The diameter of this cable was 0.322" (~8 mm) and required crossbows compatible with a thicker-gauge wire. A 220 lb weight was shackled to the termination of this cable and was designed to keep the net straight in the water column during deployment.
+
+Standard operating procedures were to deploy the ring net system at a speed of 30 m/min to within 10 m from the seabed based on total water column depth, and then recover the system at a rate of 50 m/min without slowing or stopping until the top of the net was out of the water. Ring nets were equipped with a KC Denmark flow meter, which was used to record the start and end flow for each cast. The net was gently rinsed using a seawater hose, and the contents of the code end was preserved in 4% buffered formaldehyde (10% formalin). Net operations at station HL_02 consisted of the standard (202 µm) net deployment, and a 76 µm net deployment preserved in formalin. 
+
+A total of 101 ring net operations were conducted at 90 unique stations during the mission (see Table \@ref(tab:table3)), including a total of 3, 76 µm net deployments at station HL_02. An angle finder was used to assess wire angle during the net ascent, and typically ranged between 5 and 15$^\circ$. The ring net tow at station YL_05 (Event 028) was aborted after the net hit the bottom, at stations PL_06 (Event 051), NEC_04 (Event 069), and GUL_03 (Event 123), ring net operations were aborted and re-deployed after the crossbow slid down the wire. This issue is described further in the [Operational Considerations and Issues of Note](#operation-issues) section below. At station HL_01 (Event 077) was aborted after the end cap fell off the cod end, and the sample was lost. This cod end was quickly replaced after the net was washed down, and the net was redeployed. At station STAB_05 (Event 185), the net was aborted after the cable started to rub up against the winch house after the winch was adjusted. The winch was adjusted again and the net re-deployed successfully.
+
+
+### Data Accessibility
+
+The wet biomass of large (> 10 mm) and small (< 10 mm) zooplankton (separate and combined), the dry weight of small zooplankton, and abundances of large zooplankton taxa and a sub-sample of small zooplankton taxa will be uploaded and available in BioChem upon completion of the analysis of samples in the laboratory, and can also be provided upon request to DFO.BIODataServices-BIOServicesdeDonnees.MPO@dfo-mpo.gc.ca.
+
+
+\clearpage

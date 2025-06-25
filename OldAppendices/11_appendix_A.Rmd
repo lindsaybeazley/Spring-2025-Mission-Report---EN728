@@ -1,0 +1,726 @@
+<!-- The following code should appear at the beginning of the first appendix (if you have one)
+After that, all subsequent sections will be turned into appendices. -->
+
+`r if(knitr:::is_latex_output()) '% begin csasdown appendix'`
+`r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'`
+
+\pagestyle{plain} <!-- reinstate page style --> 
+
+
+# Evaluation of Sensor Data against Bottle Measurements {#appA}
+
+This appendix contains plots of dissolved oxygen and salinity sensor data against their corresponding Winkler and salinometer measurements, respectively. These plots were generated almost daily throughout the mission and used as a tool to A) monitor the relationship between the oxygen and conductivity sensor data and their corresponding laboratory measurements as a means of validating the sensor outputs, and B) evaluate the laboratory measurements for visual outliers.
+
+Plots were generated for each CTD cast using R scripts applied to the 'bottle reports' created using the DART application (see the [Data Management](#DM) section above for more details). The bottle reports contain only the sensor values associated with each bottle closure. Therefore, the plots in this appendix do not portray the full vertical resolution of the profile data. Note that replicate bottle samples are not collected for salinity, but are collected for dissolved oxygen at predetermined depths.
+
+
+
+\begin{landscape}
+\pagestyle{empty} 
+
+
+(ref:figA1-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 4 to 24. Note the variable range in the y-axis.
+
+```{r figureA1, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA1-caption)"} 
+
+Oxy_report <- readr::read_csv(file.path("R:/SRC/2020s/2025/EN728/Dart_reports", "EN728_Oxygen_Rpt.csv"))
+Oxy_report_df <- data.frame(Oxy_report)
+
+
+#Subset based on event sequence of interest, then modify in plot below
+subset_oxy_1_24 <-subset(Oxy_report_df, EVENT <=24)
+
+oxy_1 <-  ggplot(subset_oxy_1_24, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=3, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scales="free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top") 
+oxy_1
+```
+
+\clearpage
+
+
+
+(ref:figA2-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 25 to 44. Note the variable range in the y-axis.
+
+```{r figureA2, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA2-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_25_44 <-subset(Oxy_report_df, EVENT >=25 & EVENT <=44)
+
+oxy_2 <- ggplot(subset_oxy_25_44, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_2
+```
+
+\clearpage
+
+
+
+(ref:figA3-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 46 to 64. Note the variable range in the y-axis.
+
+```{r figureA3, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA3-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_46_64 <-subset(Oxy_report_df, EVENT >=46 & EVENT <=64)
+
+oxy_3 <- ggplot(subset_oxy_46_64, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_3
+```
+
+\clearpage
+
+
+
+(ref:figA4-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 65 to 84. Note the variable range in the y-axis.
+
+```{r figureA4, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA4-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_65_84 <-subset(Oxy_report_df, EVENT >=65 & EVENT <=84)
+
+oxy_4 <- ggplot(subset_oxy_65_84, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_4
+
+```
+
+\clearpage
+
+
+
+(ref:figA5-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 86 to 120. Note the variable range in the y-axis.
+
+```{r figureA5, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA5-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_86_120 <-subset(Oxy_report_df, EVENT >=86 & EVENT <=120)
+
+oxy_5 <- ggplot(subset_oxy_86_120, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_5
+
+```
+
+\clearpage
+
+
+(ref:figA6-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 122 to 145. Note the variable range in the y-axis.
+
+```{r figureA6, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA6-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_122_145 <-subset(Oxy_report_df, EVENT >=122 & EVENT <=145)
+
+oxy_6 <- ggplot(subset_oxy_122_145, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_6
+
+```
+
+
+(ref:figA7-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 147 to 166. Note the variable range in the y-axis.
+
+```{r figureA7, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA7-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_147_166 <-subset(Oxy_report_df, EVENT >=147 & EVENT <=166)
+
+oxy_7 <- ggplot(subset_oxy_147_166, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_7
+
+```
+
+\clearpage
+
+(ref:figA8-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 168 to 187. Note the variable range in the y-axis.
+
+```{r figureA8, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA8-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_168_187 <-subset(Oxy_report_df, EVENT >=168 & EVENT <=187)
+
+oxy_8 <- ggplot(subset_oxy_168_187, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_8
+
+```
+\clearpage
+
+(ref:figA9-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 189 to 207. Note the variable range in the y-axis.
+
+```{r figureA9, results="asis", out.height="5in", out.width="8in", fig.cap = "(ref:figA9-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_189_207 <-subset(Oxy_report_df, EVENT >=189 & EVENT <=207)
+
+oxy_9 <- ggplot(subset_oxy_189_207, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_9
+
+```
+
+
+(ref:figA10-caption) Relationship between primary (blue) and secondary (orange) dissolved oxygen sensors and dissolved oxygen measurements (replicate 1 = red, replicate 2 = green) from the Winkler titration method for Events 209 to 220. Note the variable range in the y-axis.
+
+```{r figureA10, results="asis", out.height="5in", out.width="6in", fig.cap = "(ref:figA9-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_oxy_209_220 <-subset(Oxy_report_df, EVENT >=209 & EVENT <=220)
+
+oxy_10 <- ggplot(subset_oxy_209_220, aes(x=PRESSURE)) +
+    geom_line(aes(y=Oxy_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Oxy_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Oxy_W_Rep1, color = "red"), size=2) +
+    geom_point(aes(y=Oxy_W_Rep2, color = "springgreen"), size=2, shape=13) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "WinklerRep1", "WinklerRep2")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Oxygen (ml/L)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(2, 10), labels = label_number(accuracy = 1)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+oxy_10
+
+```
+
+
+
+(ref:figA11-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 4 to 24. Note the variable range in the y-axis.
+
+```{r figureA11, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA11-caption)", include=TRUE, echo=FALSE, fig.show='hold'} 
+
+Sal_report <- readr::read_csv(file.path("R:/SRC/2020s/2025/EN728/Dart_reports/EN728_Salinity_Summary.csv"))
+Sal_report_df <- data.frame(Sal_report)
+
+
+#Subset based on event sequence of interest, then modify in plot below
+subset_sal_1_24 <-subset(Sal_report_df, EVENT <=24)
+
+sal_1 <-  ggplot(subset_sal_1_24, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_1
+```
+
+\clearpage
+
+
+(ref:figA12-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 25 to 44. Note the variable range in the y-axis.
+
+```{r figureA12, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA12-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_25_44 <-subset(Sal_report_df, EVENT >=25 & EVENT <=44)
+
+sal_2 <- ggplot(subset_sal_25_44, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_2
+```
+
+\clearpage
+
+
+(ref:figA13-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 46 to 64. Note the variable range in the y-axis.
+
+```{r figureA13, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA13-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_46_64 <-subset(Sal_report_df, EVENT >=46 & EVENT <=64)
+
+sal_3 <- ggplot(subset_sal_46_64, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_3
+```
+
+\clearpage
+
+
+(ref:figA14-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 65 to 84. Note the variable range in the y-axis.
+
+```{r figureA14, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA14-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_65_84 <-subset(Sal_report_df, EVENT >=65 & EVENT <=84)
+
+sal_4 <- ggplot(subset_sal_65_84, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_4
+
+```
+
+\clearpage
+
+
+(ref:figA15-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 86 to 120. Note the variable range in the y-axis.
+
+```{r figureA15, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA15-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_86_120 <-subset(Sal_report_df, EVENT >=86 & EVENT <=120)
+
+sal_5 <- ggplot(subset_sal_86_120, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_5
+
+```
+\clearpage
+
+
+(ref:figA16-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 122 to 145. Note the variable range in the y-axis.
+
+```{r figureA16, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA16-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_122_145 <-subset(Sal_report_df, EVENT >=122 & EVENT <=145)
+
+sal_6 <- ggplot(subset_sal_122_145, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_6
+
+```
+\clearpage
+
+
+(ref:figA17-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 147 to 166. Note the variable range in the y-axis.
+
+```{r figureA17, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA17-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_147_166 <-subset(Sal_report_df, EVENT >=147 & EVENT <=166)
+
+sal_7 <- ggplot(subset_sal_147_166, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_7
+
+```
+\clearpage
+
+(ref:figA18-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 168 to 187. Note the variable range in the y-axis.
+
+```{r figureA18, results="asis", out.height="5.5in", out.width="8in", fig.cap = "(ref:figA18-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_168_187 <-subset(Sal_report_df, EVENT >=168 & EVENT <=187)
+
+sal_8 <- ggplot(subset_sal_168_187, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_8
+
+```
+\clearpage
+
+(ref:figA19-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 189 to 207. Note the variable range in the y-axis.
+
+```{r figureA19, results="asis", out.height="5in", out.width="8in", fig.cap = "(ref:figA19-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_189_207 <-subset(Sal_report_df, EVENT >=189 & EVENT <=207)
+
+sal_9 <- ggplot(subset_sal_189_207, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_9
+
+```
+\clearpage
+
+(ref:figA20-caption) Relationship between primary (blue) and secondary (orange) salinity (from conductivity) sensor data and salinity bottle values (red) for Events 209 to 220. Note the variable range in the y-axis.
+
+```{r figureA20, results="asis", out.height="5in", out.width="6in", fig.cap = "(ref:figA20-caption)", include=TRUE, echo=FALSE, fig.show='hold'}
+subset_sal_209_220 <-subset(Sal_report_df, EVENT >=209 & EVENT <=220)
+
+sal_10 <- ggplot(subset_sal_209_220, aes(x=PRESSURE)) +
+    geom_line(aes(y=Sal_CTD_P, color = "blue"), lwd=1) +
+    geom_line(aes(y=Sal_CTD_S, color = "orange2"), lwd=1, linetype="dashed") +
+    geom_point(aes(y=Sal_Rep1, color = "red"), size=2) +
+    scale_color_identity(guide = "legend", name=NULL, labels = c("Primary", "Secondary", "Bottle")) +
+    guides(colour = guide_legend(label.theme = element_text(size=14))) +
+    coord_flip() +
+    scale_x_reverse() +
+    theme_bw()+
+    ylab("Salinity (PSU)")+
+    xlab("Pressure (dbar)") +
+    theme(axis.text.y=element_text(size=13)) +
+    theme(axis.text.x=element_text(size=13)) +
+    theme(axis.title.y=element_text(size=14)) +
+    theme(axis.title.x=element_text(size=14)) +
+    scale_y_continuous(limits = c(28, 36)) +
+    theme(axis.title.y = element_text(vjust = +3),
+    axis.title.x = element_text(vjust = -1)) +
+    
+    facet_wrap(~EVENT, nrow =2, scale = "free_y")+
+    theme(strip.text.x = element_text(size=18, face="bold", vjust=1))+
+    theme(strip.text.y = element_text(size=18, face="bold", vjust=1))+
+    theme(legend.position="top")
+sal_10
+
+```
+\clearpage
+
+\end{landscape}
+
+

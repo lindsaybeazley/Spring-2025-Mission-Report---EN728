@@ -1,0 +1,28 @@
+# Operational Considerations and Issues of Note {#operation-issues}
+
+This section contains a brief summary of the various operational considerations or issues encountered with science equipment and/or data and sample post-processing during the EN728 mission. This information should help to guide both CTD and laboratory post-processing procedures, and future interpretation of the data collected on the mission.
+
+
+## CTD Operations
+
+1. The CTD standard operating procedure used during CTD data acquisition from Events 001 to 061 differed slightly between CTD computer operators on the day (07:00-19:00) and night (19:00-07:00) shifts. For casts collected during the day shift, the CTD deck box was turned on only after the CTD-Rosette was deployed and resting at its 10-m soak depth. While this appeared to have no issue on the resulting cast data and removal of the soak from the downcast, this procedure was changed starting on Event 062 so that the deck unit was turned on just prior to the initial deployment of the CTD-Rosette system, so that the procedures were consistent between day and night shift deployments.
+
+2. Several Niskin bottle misfires occurred throughout the mission. In some cases these misfires were consistently from the same bottle, which was mitigated by changing the bottle position on the rosette, or by changing trigger mechanism. In all cases, these misfires occurred at depths where water samples were collected in duplicate, which provided enough water to satisfy the amount of samples collected by both DFO and Dalhousie University science staff. Thus no samples were lost as a result of these misfires. Comments related to bottle misfires were captured in the ELOG Comments field presented in Table \@ref(tab:table3).
+
+
+## Ring Net Operations
+
+1. Ring net operations were aborted and re-deployed at several stations (PL_06, NEC_04, and GUL_03) due to the crossbow sliding down the wire, invalidating the sample. In all cases, the net was re-deployed successfully after the crossbow was re-adjusted and tightened on the wire. This issue was more prominent when using one particular crossbow that had a slightly smaller groove for the wire on its top clamp. At station HL_01, the PVC cap fell off the cod end of the net, resulting in the loss of the sample upon recovery. At station STAB_05, the winch wire rubbed against the vessel's winch cab (known as the 'dog house'), and the net descent was paused for a long duration at 200 m. It was decided to recover the net and re-deploy.
+
+
+## Mooring Operations
+
+1. The acoustic receiver moorings at stations GUL02, GUL03, and GUL05 could not be recovered during the mission. The status of the receivers at stations GUL02 and GUL03 showed a tilt ranging between 56-58$^\circ$ and 68-79$^\circ$, respectively, suggesting they were laying near-horizontal on the seabed. Communications could not be established with the release at station GUL05.
+
+
+## Flow-Through System
+
+1. The BIO flow-through system was initially connected to the vessel's uncontaminated science seawater outflow modulated by an impeller pump. However, on April 6 it was noticed that the outflow from the system had suddenly stopped. The power to the pump was evaluated by the vessel's engineers and turned back on. On April 9 and again on April 10, the impeller pump had shut off again unexpectedly. As these shut offs became more frequent, a decision was made to switch the BIO flow-through system to the science seawater modulated by the vessel's diaphragm pump on April 14. The disruption and shut down of the impeller pump also affected the only intake temperature sensor for both science seawater pumps, which is inline with the impeller pump. Consequently, the intake temperature for the BIO flow-through system was switched to a temperature sensor located on the transducer. The depth of this sensor is 5 m below sea surface, and was considered comparable to the impeller pump intake temperature.
+
+
+\clearpage

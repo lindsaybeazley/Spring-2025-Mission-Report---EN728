@@ -1,0 +1,68 @@
+## Mooring Operations {#mooring-operations}
+
+Deployment of a single passive acoustic monitoring (PAM) mooring was conducted in Roseway Basin on the EN728 mission. This mooring consisted of a large Stablemoor capsule floatation with an inserted JASCO Autonomous Multichannel Acoustic Recorder, battery pack, hydrophone, beacon, and SBE 37 microCAT connected to two BUB buoyancy packages via a kevlar rope, and dual Teledyne Benthos acoustic releases connected to a double train wheel anchor weighing 1240 lbs. The total length of the mooring assembly was 29 m in length with an in-air weight of 1678 lbs (excluding the anchor). This mooring was deployed in the Roseway Basin North Atlantic Right Whale critical habitat zone at the request of DFO Research Scientist Angelia Vanderlaan, lead of DFO's North Atlantic Right Whale Research Unit, Maritimes Region, after it unexpectedly resurfaced in December 2024 due to a failed release. The mooring was deployed using the vessel's A-frame and a portable Tension Strain Equipment (TSE) mooring spooler provided by URI. The mooring will remain until its recovery in fall 2025.
+
+An array of 15 acoustic receiver moorings situated at the head of the Gully MPA (see Figure \@ref(fig:figure7)) was planned for recovery during the EN728 mission as part of a joint project between DFO and the Ocean Tracking Network (OTN). These moorings were outfitted with acoustic releases and yellow flotation collars outfitted with Vemco VR4 receivers that sit several metres above the seabed that are designed to record nearby tagged species. The goal of this project was to understand how a hot spot of juvenile halibut northwest of the MPA utilize the area, providing key insights into their behavior and movement patterns. 
+
+A recovery procedure was outlined between the lead mooring technician on the mission, Adam Hartling, the Captain and bosun, which involved positioning the vessel approximately 150 m away from the mooring coordinates and establishing communications with the mooring using a Vemco VR100 deck unit and transducer deployed to 5-6 m below the sea surface. Once the mooring was released, the vessel positioned itself so that the mooring flotation was accessible from the starboard deck. Once the flotation was alongside and close enough to reach, a long gaff was used to hook a loop in the rope leading from the flotation to the release. A snap hook attached to a rope connected to the ship's knuckleboom crane was then used to secure the mooring and lift it out of the water and onto the starboard deck. Once the mooring and release were on board, they were cleaned of any biofouling material and stowed for the remainder of the mission.
+
+Of the 15 moorings comprising the array, only 12 could be recovered. Most moorings (see Table \@ref(tab:table3)) were recovered on Monday April 7, with the exception of the moorings at stations GUL02, GUL03, GUL05, and GUL12. Of these 4, communications could not be established with the moorings at GUL05 and GUL12. At stations GUL02 and GUL03, communications were established, but neither mooring surfaced after release. A health status evaluation indicated that the depth of both moorings did not change after release. The tilt of each mooring release was high (56 to 79$^\circ$) suggesting the releases were not vertical in the water column. The moorings that could not be recovered on April 7 were revisited on Tuesday April 8 to attempt recovery for a second time. Upon arrival at station GUL12, communications were established with the mooring almost immediately, and it was released and recovered successfully. However, communications could not be established with the mooring release at GUL05, and this mooring could not be recovered. The moorings at stations GUL02 and GUL03 were revisited and communications re-established, but their status remained unchanged. Release was re-attempted for both moorings but was not successful. 
+
+\clearpage
+
+
+```{r figure7, fig.height = 6, fig_align = "center", fig.cap = "Location of Ocean Tracking Network acoustic receiver array partially recovered during the EN728 mission. Also shown are the boundaries and zones of the Gully Marine Protected Area, where the dashed line = Zone 1, solid line = Zone 2, hexagon pattern = Zone 3, and the Maritimes Region AZMP's CTD-Rosette and ring net monitoring stations."}
+
+#load cruise track station table and baselayer shapefiles
+stations<-readr::read_csv("R:/SRC/2020s/2025/EN728/Dart_reports/EN728_Elog_Summary.csv")
+stations2 <- stations %>%
+  filter(Instrument == "CTD" | Instrument == "RECOVER MOORING" | Instrument == "202")
+stations2$Instrument <- plyr::revalue(stations2$Instrument, c("CTD" = "CTD-Rosette", "202" = "202 \U00B5m Ring Net", "RECOVER MOORING" = "OTN Mooring"))
+stations_shp <- st_as_sf(stations2, coords = c("Min_Lon", "Min_Lat"), crs = 4326, agr = "constant") #WGS84 = # 4326
+
+provs<-sf::read_sf("C:/Baselrs_Shapefls/WorldCountries.shp")
+bathy <-sf::read_sf("C:/Baselrs_Shapefls/ABC_Contours_100m.shp")
+#crop contour shapefile so it doesn't take as long to run
+bathy2 <- sf::st_crop(bathy, c(xmin=-75, xmax=-55, ymin=40, ymax=50))
+
+MPAs <- sf::read_sf("C:/Baselrs_Shapefls/DFO_MPA_MPO_ZPM_SHP/DFO_MPA_MPO_ZPM.shp")
+GullyMPA <- MPAs[c(5:8), ]
+GullyMPA2 <- st_transform(GullyMPA, crs=4326) #re-project to WGS84
+
+
+gullymap <- ggplot()+
+            geom_sf(data=bathy2, color= "grey70", size=0.1, alpha = 0.4) + 
+            geom_sf_pattern(data=(GullyMPA2 %>% filter(ZONE_E == "Zone 3 east")), pattern='magick', fill='white', colour='black') +
+            geom_sf_pattern(data=(GullyMPA2 %>% filter(ZONE_E == "Zone 3 west")),pattern='magick', fill='white', colour='black') +
+            geom_sf(data=(GullyMPA2 %>% filter(ZONE_E == "Zone 2")), colour="black", fill=NA, linewidth=0.8) +
+            geom_sf(data=(GullyMPA2 %>% filter(ZONE_E == "Zone 1")), colour="white", fill=NA, linetype="dashed", linewidth=0.8) +
+            geom_sf(data = stations_shp, aes(colour=Instrument, size=Instrument)) +
+            scale_size_manual(values = c(6,3,3), guide="none") +
+            annotation_scale(location = "bl", width_hint = 0.1) +
+            annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.1, "in"), pad_y = unit(5.11, "in"),
+                         height = unit(1, "cm"), width = unit(1, "cm"),
+                         style = north_arrow_fancy_orienteering) +
+            coord_sf(xlim = c(-59.4, -58.5), ylim = c(43.55, 44.25)) +
+            labs(color = "Operations") +
+            theme_bw()+
+            theme(legend.position = c(0.82, 0.889)) + #left number is horizontal movement, right number is vertical 
+            theme(legend.text=element_text(size=11)) +
+            theme(legend.title=element_text(size=12, face="bold")) +
+            theme(legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid')) +
+    annotate(geom = "text", x = -59.21, y = 44.1, label = "GUL_01", 
+           fontface = "italic", color = "black", size = 3) +
+    annotate(geom = "text", x = -58.91, y = 44.02, label = "GUL_02", 
+           fontface = "italic", color = "black", size = 3) +
+    annotate(geom = "text", x = -59.03, y = 43.88, label = "GUL_03", 
+           fontface = "italic", color = "black", size = 3) +
+    annotate(geom = "text", x = -58.815, y = 43.79, label = "GUL_04", 
+           fontface = "italic", color = "black", size = 3) +
+    annotate(geom = "text", x = -59.13, y = 44.0, label = "GULD_03", 
+           fontface = "italic", color = "black", size = 3) +
+    labs(x = NULL, y= NULL) 
+gullymap
+
+```
+
+\clearpage

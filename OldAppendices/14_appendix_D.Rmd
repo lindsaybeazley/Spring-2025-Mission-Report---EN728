@@ -1,0 +1,182 @@
+# Evaluation of the Relationship between Sensor Chlorophyll _a_ and Turner Fluorometer Chlorophyll _a_ {#appD}
+
+
+## Background 
+
+Seapoint chlorophyll and CDOM (UV) fluorometers supplied by DFO were used during DY18402 mission. Both the chlorophyll (SN 3668) and CDOM (SN 6229) sensors functioned well and remained on the CTD package for the duration of the mission. For the purpose of this exercise, chlorophyll _a_ data from the _in situ_ chlorophyll fluorometer was evaluated against the corresponding Turner chlorophyll _a_ measurements in order to determine how consistent the data were with the bottle measurements, and _vice versa_. At present, the results of this exercise are not currently being used to revise the calibration coefficients for the sensors, although a method is currently being developed for this purpose.
+
+A total of 579 replicate water samples (1158 measurements) were collected for chlorophyll _a_ determination during the DY18402 mission. Replicate samples were averaged prior to evaluating the corresponding CTD fluorometer data. Using the 1.5*IQR method for outlier detection outlined in appendices [B](#appB) and [C](#appC) above, 95 of 579 measurements were identified as outliers (Figure \@ref(fig:figureD1)). The average difference between replicates was -0.0012 $\pm$ 0.0097 $\mu$g/L (mean $\pm$ SD) after removal. Similar outlier detection methods were used to remove outliers between the chlorophyll sensor and Turner fluorometer data. First, both the chlorophyll sensor and Turner measurements were standardized by dividing both datasets by the chlorophyll sensor data value at each sample depth. This converts the sensor data for each bottle fire to 1, and the corresponding mean replicate Turner value to a percentage of the sensor value. A value of 1.15 means that the Turner fluorometer value was 15% greater than its corresponding sensor value. This approach was taken because calculating the straight difference between values is greatly influenced by the magnitude of the values. In other words, the difference between 0.01 and 0.1 and the difference between 6.31 and 6.40 are both 0.09, but the relative difference is ~90% and 1.4%, respectively.
+
+
+## Seapoint SCF Fluorometer SN 3668
+
+A total of 17 outliers between the chlorophyll sensor (Seapoint SCF SN 3668) outputs and mean Turner fluorometer bottle measurements were identified using the method described above and subsequently removed (Figure \@ref(fig:figureD2)). Figure \@ref(fig:figureD3) shows the log relationship between the chlorophyll sensor values and the mean Turner chlorophyll measurements, with the 17 outliers from Figure \@ref(fig:figureD2) shown in red. The blue line corresponds to the line of best fit from a linear regression between the log chlorophyll sensor data and Turner chlorophyll data, while the orange dashed line represents the 1:1 reference line. When the outliers were removed and a linear regression was fit between the two datasets (Figure \@ref(fig:figureD3)), the relationship between the two was positive and statistically significant (_p_ value = 2 x 10$^{-16}$ . The R$^2$ value was high (0.8961), suggesting an excellent fit between the fluorometer sensor outputs and Turner chlorophyll measurements.
+
+
+```{r analysis, eval=TRUE, include=FALSE}
+
+chl_report <- readr::read_csv(file.path("R:/SRC/2020s/2024/DY18402/DART Reports", "DY18402_Chl_Summary.csv"))
+chl_report_df <- data.frame(chl_report)
+
+
+chl_report_df = chl_report_df %>% 
+  dplyr::arrange(EVENT, SAMPLE_ID) %>% #properly orders chlorophyll report by event and sample ID
+  dplyr::mutate(ID=row.names(chl_report_df)) #Adds a new variable called ID that can be used to plot the data and/or keep it sorted properly
+
+chl_report_df$ID <- as.numeric(chl_report_df$ID)
+
+
+#Subset data to only include data points with chlorophyll replicates.
+chl <- na.omit(chl_report_df)
+rownames(chl) <- seq(length=nrow(chl))
+chl$ID<-row.names(chl)
+
+```
+
+
+(ref:figD1-caption) Comparison of Turner fluorometer replicates. Differences above or below the IQR min/max are considered outliers (red dots) and were removed from the evaluation process. Boxplot statistics are as follows: Median = 0.0000, IQR min = -0.0317, IQR max = 0.0246.
+
+```{r figureD1, fig.asp = 0.7, fig_align = "center", fig.pos = "H", echo=FALSE, include=TRUE, fig.cap="(ref:figD1-caption)"}
+
+# Step 1: Evaluation of Turner replicates ------------------------------------
+
+rep1<-chl$Chl_Rep1
+rep2<-chl$Chl_Rep2
+#rep2[rep2==0] <- NA #convert zero chlorophyll values to NA...but there weren't any in this year's data
+
+rep_diff=rep1-rep2                                # difference chl replicates 
+rep_stats=boxplot.stats(rep_diff)                 # calculates boxplot stats on chl rep differences
+rep_outliers=which(rep_diff %in% rep_stats$out)   # pulls out outlier rows in chl rep differences
+
+
+par(mar = c(4, 4.2, 0.1, 0.1))
+
+plot(rep_diff, xlab="Ordered by increasing event and row index", ylab=expression("Turner fluorometer Rep 1 - Rep 2 ("*mu*"g/L)"), cex.lab=1.3)
+points(rep_outliers, rep_diff[rep_outliers], pch=19, col="red")
+abline(rep_stats$stats[3],0, col="blue")        #median
+abline(rep_stats$stats[1],0, col="blue", lty=3) # plot lower limit - IQR min
+abline(rep_stats$stats[5],0, col="blue", lty=3) # plot upper limit - IQR max
+
+```
+\vspace*{0.4in}
+
+
+\clearpage
+
+
+```{r, eval=TRUE, include=FALSE}
+
+chl_2 <- chl[ ! chl$ID %in% rep_outliers, ] #remove bad data rows where there is relatively large difference between rep1 and rep2
+row.names(chl_2) <- 1:nrow(chl_2)
+chl_2$ID<-row.names(chl_2) 
+nrow(chl)
+nrow(chl_2) 
+chl_2$Chl_rep_diff <- chl_2$Chl_Rep1 - chl_2$Chl_Rep2 #difference between replicates 
+mean(chl_2$Chl_rep_diff, na.rm=TRUE)  #Mean difference between replicates
+sd(chl_2$Chl_rep_diff, na.rm=TRUE)    #Standard deviation
+
+```
+
+
+
+(ref:figD2-caption) Outliers identified from calculating the percent (%) difference between standardized chlorophyll sensor values and Turner fluorometer values (mean Turner fluorometer values divided by the chlorophyll sensor values). Boxplot statistics are as follows: Median = 0.5524, IQR min = 0.0754, IQR max = 0.9829. The solid red line indicates the mean (0.4654).
+
+```{r figureD2, fig.asp = 0.7, fig_align = "center", fig.pos = "H", echo=FALSE, include=TRUE, fig.cap="(ref:figD2-caption)"}
+
+# Step 2: Evaluate the chlorophyll fluorometer sensor #3668 ------------------
+
+SN3668 <- chl_2
+
+#First, create a new dataset:
+row.names(SN3668) <- 1:nrow(SN3668)
+SN3668$ID<-row.names(SN3668) 
+
+#Standardize the primary sensor data by dividing the values by itself
+SN3668$STD_flsp <- SN3668$flsp/SN3668$flsp
+
+#Divide Turner Mean by primary sensor values
+SN3668$Chl_rep_Mean<-(SN3668$Chl_Rep1 + SN3668$Chl_Rep2)/2 
+SN3668$Chl_Mean_STD <- SN3668$Chl_rep_Mean/SN3668$flsp 
+
+sensor_STD_3668 <-SN3668$STD_flsp
+Meanrep_STD_3668 <-SN3668$Chl_Mean_STD
+STD_diff_3668 = sensor_STD_3668 - Meanrep_STD_3668  # difference standardized sensor and mean standardized difference between reps
+STD_stats_3668 = boxplot.stats(STD_diff_3668)
+STD_outliers_3668 = which(STD_diff_3668 %in% STD_stats_3668$out) 
+
+# mean value
+m3=mean(STD_diff_3668, na.rm=TRUE)
+
+par(mar = c(4, 4.1, 4, 0.1))
+
+plot(STD_diff_3668, xlab="Ordered by increasing event and row index", ylab=expression("Standardized sensor - mean Turner fluorometer ("*mu*"g/L)"), cex.lab=1.2)
+points(STD_outliers_3668, STD_diff_3668[STD_outliers_3668], pch=19, col="red")
+abline(m3, 0, col="red") #Seapoint data % higher than corresponding turner data
+abline(STD_stats_3668$stats[3],0, col="blue")        # median
+abline(STD_stats_3668$stats[1],0, col="blue", lty=3) # plot lower limit - IQR min
+abline(STD_stats_3668$stats[5],0, col="blue", lty=3) # plot upper limit - IQR max
+
+```
+
+```{r, eval=TRUE, include=FALSE}
+
+SN3668_2 <- SN3668[ ! SN3668$ID %in% STD_outliers_3668, ] #remove bad data rows where there is relatively large difference between primary and secondary
+row.names(SN3668_2) <- 1:nrow(SN3668_2)
+SN3668_2$ID<-row.names(SN3668_2)
+
+Outliers_3668 <- subset(SN3668, ID %in% STD_outliers_3668)
+Outliers_3668 
+
+```
+
+
+(ref:figD3-caption) Top: log10 scale of sensor fluorometer values against mean replicate Turner fluorometer values for Events 001 to 193. Outliers from Figure D.2. are indicated in red. Bottom: log10 plot of sensor fluorometer values and replicate Turner fluorometer values (outliers removed), colour-coded by depth, where red and dark red are shallow and purple and blue are deep (closer to 100 m). In both plots, the blue line represents the line of best fit, while the orange dashed line is the 1:1 reference line.
+
+```{r figureD3, fig.pos = "H", fig.asp=0.7, out.height="45%", out.width="85%", fig.show='hold', fig_align = "center", echo=FALSE, include=TRUE, fig.cap="(ref:figD3-caption)"}
+
+par(mar = c(4, 4.1, 0.1, 0.1))
+
+plot(log10(flsp)~log10(Chl_rep_Mean), data=SN3668, xlab="",
+     ylab=expression("Log10 Seapoint Fluorometer #3668 ("*mu*"g/L)"), cex.lab=1.2)
+points(log10(flsp)~log10(Chl_rep_Mean), data=Outliers_3668, pch=19, col="red")
+fit=lm(log10(flsp)~log10(Chl_rep_Mean), data=SN3668, na.action=na.exclude)
+abline(fit, col="blue", untf=TRUE, lwd=2) #lm fit line
+abline(0,1, lty=4, col="orange", lwd=2) #1:1 reference
+
+
+#Now plot the SN3668_2 (outliers removed) as a function of increasing depth
+
+library(RColorBrewer)
+library(plotfunctions)
+
+#Reorder dataframe by increasing depth
+SN3668_2 <- SN3668_2[order(SN3668_2$PRESSURE),]
+
+#Create a function to generate a continuous color palette
+rbPal <- colorRampPalette(c('red','blue'))
+legend_image <- as.raster(matrix(rbPal(10), ncol=1))
+
+#This adds a column of color values
+# based on the y values
+SN3668_2$Col <- rbPal(10)[as.numeric(cut(SN3668_2$PRESSURE, breaks = 10))]
+
+
+mod_3668 = lm(log10(flsp)~log10(Chl_rep_Mean), data = SN3668_2)
+modsum_3668 = summary(mod_3668)
+r2_3668 = modsum_3668$adj.r.squared
+
+
+plot(log10(flsp)~log10(Chl_rep_Mean), data=SN3668_2, xlab=expression("Log10 Mean Turner Chl a ("*mu*"g/L)"),
+     ylab=expression("Log10 Seapoint Fluorometer #3668 ("*mu*"g/L)"), pch=19, col=SN3668_2$Col, cex.lab=1.2)
+fit=lm(log10(flsp)~log10(Chl_rep_Mean), data=SN3668_2)
+abline(fit, col="blue", untf=TRUE, lwd=2) #lm fit line
+abline(0,1, lty=4, col="orange", lwd=2) #1:1 reference
+gradientLegend(valRange=c(round(min(SN3668_2$PRESSURE)),round(max(SN3668_2$PRESSURE))), color=unique(SN3668_2$Col), nCol = 10, length=0.5, depth=0.09, pos=c(-2, 0.05, -1.85, 0.4), side=2, coords=TRUE)
+mtext('Depth (m)', at=-1.9, line=-1.5, cex=1.3, font=4) 
+
+
+```
+
+
+<!-- At the end of your appendices add: -->
+`r if(knitr:::is_latex_output()) '% end csasdown appendix'`

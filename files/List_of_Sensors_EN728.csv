@@ -1,0 +1,17 @@
+Sensor,Model,Sensor Units,QAT Output Variable Name,Serial Number,Calibration Date,Owner
+Primary CTD deck unit,SBE 11plus,NA,NA,NA,NA,URI
+CTD underwater unit,SBE 9plus,NA,NA,NA,NA,URI
+Primary temperature,SBE 3P,"ITS-90 temperature, Celcius",t090C,4695,2024-01-17,URI
+Primary conductivity,SBE 4C,"Conductivity, S/m",c0S/m,618,2024-01-23,URI
+Digiquartz pressure sensor,Paroscientific,dbar,prDM,444,2024-03-21,URI
+Primary dissolved oxygen,SBE 43,"Dissolved oxygen, ml/l",sbeox0,1648,2024-08-09,URI
+Secondary temperature ,SBE 3P,"ITS-90 temperature, Celcius",t191C,4130,2024-01-18,URI
+Secondary conductivity,SBE 4C,"Conductivity, S/m",c1S/m,2822,2024-01-23,URI
+Secondary dissolved oxygen,SBE 43,"Dissolved oxygen, ml/l",sbeox1,4281,2024-07-11,URI
+pH,SBE 18,NA,ph,1251,2025-03-06,DFO
+Chlorophyll fluorometer,Wet Labs ECO AFL/FL,micro g/L,flSP,4028,2023-12-18,URI
+CDOM fluorometer ,Seapoint Fluorometer SCF,micro g/L,flSPuv0,6225,2025-03-07,DFO
+PAR/Log,Biospherical Licor Chelsea Sensor,micromoles photons/m2/s,par,70709,2023-06-07,URI
+Nitrate,Deep SUNA ,milligrams/L,NA,NTR-2382,2024-10-17,DFO
+Transmissometer,WET Labs C-Star,"Beam attenuation (1/m), Beam transmission (%)",CStarAt0,969DR,2024-02-23,URI
+Altimeter,Valeport VA500,metres,altM,49898,2015-03-30,URI
